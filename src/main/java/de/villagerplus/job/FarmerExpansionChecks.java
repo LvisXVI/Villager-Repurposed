@@ -69,6 +69,7 @@ public final class FarmerExpansionChecks {
 				villager.getBrain().setMemory(MemoryModuleType.HOME, GlobalPos.of(level.dimension(), site.offset(-12, 0, 0)));
 			}
 			Villager farmer = fixtures.getFirst();
+			farmer.teleportTo(site.getX() + 0.5, site.getY() + 1, site.getZ() + 0.5);
 			farmer.getBrain().setMemory(MemoryModuleType.JOB_SITE, GlobalPos.of(level.dimension(), site));
 			JobState state = JobManager.state(farmer);
 			state.idleUntil[1] = 0;

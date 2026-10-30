@@ -2,6 +2,13 @@
 
 **Aktuelle Übergabe, 30.10.2026.** GitHub-Repository: https://github.com/LvisXVI/Villager-Repurposed (privat, Branch `main`). Aktueller Code und die folgenden Nachweise gehen älteren Abschnitten vor.
 
+## Lauf 30.10.2026 – Master-Prompt Phase 2 (Headless 209)
+
+- Neue Headless-Modi: **`milestones`**, **`farmexpand`**, **`railtransport`**, **`railmetro`**, **`caravandelivery`**, **`cookdelight`**, **`compat`** (siehe `AutoTest.HEADLESS`).
+- **`MilestoneWaitingChecks`**, **`FarmerExpansionChecks`** (Teleport-Fix), **`RailMetropolisChecks`**, **`CaravanPorterDeliveryChecks`**, **`CookDelightChecks`**, **`CompatChecks`**; `Roads.reciprocalMetropolis` package-sichtbar, `Roads.advanceMetropolisRailCheck` für Tests.
+- `VP_AUTOTEST=headless` auf `vp-role-test`: **209 Checks**, `./gradlew build` JDK 25 grün.
+- **Offen:** CTOV-Meilensteinbau bis Abschluss, natürliche Karawanen-Porter-Lieferung, Delight/Vollpack im Dev-Gradle, Bahn End-to-End in CTOV.
+
 ## Lauf 30.10.2026 – roadclear headless + Merge PR #3
 
 - **`RoadClearing`:** Baumsuche nahe Glockenhöhe (`findLogColumn`), Stand neben Stamm (`standBesideColumn`), Heightmap-Obergrenze relativ zur Glocke.

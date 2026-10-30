@@ -7,7 +7,8 @@ import net.fabricmc.loader.api.FabricLoader;
 public final class AutoTest {
 	private static final String[] HEADLESS = {
 		"roles", "equipment", "mining", "roads", "roadwork", "roadclear", "woodcutting", "caravansites", "minelifecycle",
-		"houses", "civic", "smithrail"
+		"houses", "civic", "smithrail", "milestones", "farmexpand", "railtransport", "railmetro", "caravandelivery",
+		"cookdelight", "compat"
 	};
 
 	private AutoTest() { }
