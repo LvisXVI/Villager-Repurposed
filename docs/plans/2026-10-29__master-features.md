@@ -238,3 +238,8 @@ Nächster Schritt: den Tafel-Clientfluss des Gebäudeumzugs samt HOME/JOB_SITE-�
 - Finaler Java-25-Build erfolgreich. CTOV-Dev-Server: `caravanroad` **7 PASS**, `minelifecycle` **6 PASS**, `roadroute` **675 PASS**, `caravansites` **32 PASS**, `woodcutting` **6 PASS**. Server sauber gestoppt; Standardwelt-Einstellung und Sites-Konfliktsnapshot restauriert. Kein vollständiger `/vptest090 run`, kein Client-Sichttest und kein Vollpacknachweis.
 - G13 bleibt implemented; G01, G12 und D05 bleiben partial bis natürlicher Sicht-/Ablaufnachweis vorliegt. Audit bleibt **8/62 implemented, 54/62 partial/offen**. Nächster konkreter Schritt: diese CTOV-Neubauten und Händlerbewegung in einer natürlichen Siedlung beobachten, danach weitere offene Bau-/Infrastrukturpunkte abarbeiten.
 
+## Fortsetzung 30.10.2026 – Abrissprüfung G11
+- [x] `DemolitionWorldChecks` hängt an `/vptest090 demolish`. Der Lauf trägt einen echten Kornspeicher ab, gibt Truhen-Baumaterial ins Materiallager, behält Brot außerhalb dieses Lagers, entfernt einen ausgetauschten Bohlenblock, renaturiert die Grundfläche auf das umgebende Podsol und lässt einen Block außerhalb des Plans stehen.
+- [x] Frische Dev-Welt, JDK-25-Server: `/vptest090 demolish` **15 PASS**, direkt danach erneut **15 PASS**. Kein CTOV-Dorf, kein Neubau nach dem Abriss, kein Vollpack.
+- [ ] G11 bleibt partial. Nächster Schritt: denselben Ablauf an einem störenden Bau im natürlichen Dorf beobachten und den anschließenden Neubau verfolgen.
+

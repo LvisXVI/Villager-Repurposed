@@ -330,6 +330,10 @@ public final class Checks090 {
    int checks=count;
    source.sendSuccess(()->Component.literal("VP090 caravansites PASS "+checks+" checks"),false);return checks;
   }
+  if(mode.equals("demolish")) {
+   int count=de.villagerplus.village.DemolitionWorldChecks.run(level,new BlockPos(25000,280,25000));
+   source.sendSuccess(()->Component.literal("VP090 demolish PASS "+count+" checks"),false);return count;
+  }
   if(mode.equals("minelifecycle")) {
    int count=de.villagerplus.job.MineLifecycleChecks.run(level,new BlockPos(24000,280,24000));
    source.sendSuccess(()->Component.literal("VP090 minelifecycle PASS "+count+" checks"),false);return count;
