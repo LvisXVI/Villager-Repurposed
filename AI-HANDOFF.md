@@ -2,6 +2,10 @@
 
 **Aktuelle Übergabe, Codex, 30.10.2026, während laufender Arbeit.** GitHub-Repository: https://github.com/LvisXVI/Villager-Repurposed (privat, Branch `main`). Aktueller Code und die folgenden Nachweise gehen älteren Abschnitten vor.
 
+## Abrissprüfung 30.10.2026
+- `DemolitionWorldChecks` und `/vptest090 demolish`: auf frischer Dev-Welt zweimal **15 PASS**. Geprüft sind Riss-Abbau eines registrierten Kornspeichers, 4 Ziegel ins Materiallager, 3 Brot erhalten und nicht im Materiallager, genau eine Fichtenbohle vom ausgetauschten Block, Podsol-Oberfläche plus Erdauffüllung, unberührter Block außerhalb des Plans. G11 bleibt partial; Neubau danach und natürlicher CTOV-Abriss fehlen.
+- Audit bleibt **8/62 vollständig, 54/62 partial/offen**. Nächster Schritt: störenden Bau im natürlichen Dorf abreißen und den Neubau verfolgen.
+
 ## Cloud-Umgebung 30.10.2026
 - JDK 25 Temurin 25.0.5+8 unter `/usr/lib/jvm/temurin-25`. Unverändertes `main`: `./gradlew build --no-daemon` bricht in `RoadLightingChecks.java` an einem inneren `try` ohne `catch`/`finally` ab. Das `try` ist entfernt; der äußere `try`/`finally` räumt den Prüfling weiter auf. Danach `BUILD SUCCESSFUL` (keine Unit-Tests im Baum).
 - Dev-Server `./gradlew runServer`: Fabric Loader 0.20.1 lädt `villagerplus 0.9.0` mit Minecraft 26.2, Weltstart `Done`, RCON an 25575. `execute at @e[type=villager,limit=1] run villagerplus status` meldet einen Träger, Tätigkeit „Arbeit (Vormittag)“, Stimmung 68 %, einen Dorfbewohner. Kein `/vptest090`, kein CTOV-Lauf, kein Release.
