@@ -88,7 +88,7 @@ public final class RoadClearing {
   return false;
  }
  private static BlockPos stand(ServerLevel level,BlockPos ground){
-  for(int r=0;r<=3;r++)for(int dx=-r;dx<=r;dx++)for(int dz=-r;dz<=r;dz++) {
+  for(int r=0;r<=5;r++)for(int dx=-r;dx<=r;dx++)for(int dz=-r;dz<=r;dz++) {
    if(Math.max(Math.abs(dx),Math.abs(dz))!=r)continue;
    BlockPos p=ground.offset(dx,1,dz);if(level.hasChunkAt(p)&&safeStand(level,p))return p;
   }

@@ -86,6 +86,9 @@ public final class Roads {
      if(pending==null)pending=task;
     }
     boolean badGrade=high-low>1||!RoadRoute.gradeSafe(level,state,key,ref.bell(),link.bell(),cursor);
+    if(pending!=null&&pending.removal()!=null) {
+     ref.bellEntity().setAttached(VillagerPlus.ROADS,Map.copyOf(state));ref.dirty();return pending;
+    }
     if(blocked||badGrade) {
      if(!unavailableChunk&&cursor==startCursor
       &&!routeCursorHasWork(level,state,key,ref.bell(),link.bell(),cursor)

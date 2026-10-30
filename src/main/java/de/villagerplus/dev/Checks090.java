@@ -306,7 +306,7 @@ public final class Checks090 {
    source.sendSuccess(()->Component.literal("VP090 roadwork PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("roadclear")) {
-   int count=de.villagerplus.job.RoadClearingChecks.run(level,new BlockPos(19000,280,19000));
+   int count=de.villagerplus.job.RoadClearingChecks.run(level,new BlockPos(15000,201,15000));
    source.sendSuccess(()->Component.literal("VP090 roadclear PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("smithrail")) {
@@ -472,7 +472,7 @@ public final class Checks090 {
   BlockPos caravanRoadFixture=new BlockPos(22000,280,22000);
   for(int x=-16;x<=48;x+=16)for(int z=-16;z<=48;z+=16)level.getChunkAt(caravanRoadFixture.offset(x,0,z));
   passed+=de.villagerplus.village.CaravanRoadChecks.run(level,caravanRoadFixture);
-  passed+=de.villagerplus.job.RoadClearingChecks.run(level,new BlockPos(19000,280,19000));
+  passed+=de.villagerplus.job.RoadClearingChecks.run(level,new BlockPos(15000,201,15000));
   passed+=de.villagerplus.village.RoadTerrainChecks.run(level,A.offset(420,0,420));
   passed+=de.villagerplus.build.BuilderPathChecks.run(level,A.offset(460,0,460));
   passed+=de.villagerplus.village.CivicCenterChecks.run(level,a);

@@ -5,8 +5,8 @@
 ## Lauf 30.10.2026 – Schmied-Bahnmaterial + headless 130
 
 - `SmithRailCraft`/`SmithRailCraftChecks`: Schmied craftet bei Metropolen-Straßenlink und knappem Bestand echte Schienen an der Werkbank (Zutaten aus Dorfkiste, 16× Schiene, Ablage via `StockPolicy.insertVillage`). `StockPolicy` routet Schienen/Loren/Redstone-Block als Baustoff.
-- `VP_AUTOTEST=headless` auf `vp-role-test`: **130 Checks** (`roles` 44, `equipment` 11, `mining` 11, `roads` 9, `woodcutting` 6, `caravansites` 32, `minelifecycle` 6, `houses` 4, `civic` 2, `smithrail` 5), `runServer` und `gradlew build` mit JDK 25 **BUILD SUCCESSFUL**.
-- Straßen-Fixtures (`RoadMaintenanceChecks`, `RoadClearingChecks`): Gegenstellen-Link, festes `groundY`, Lampen-Cursor-Markierungen und `RoadBuilderJob`-Pickup mit Komponentenerhalt; `roadwork`/`roadclear` auf der flachen Welt noch nicht grün (CTOV-Nachweis bleibt maßgeblich).
+- `VP_AUTOTEST=headless` auf `vp-role-test`: **139 Checks** (`roles` 44, `equipment` 11, `mining` 11, `roads` 9, **`roadwork` 9**, `woodcutting` 6, `caravansites` 32, `minelifecycle` 6, `houses` 4, `civic` 2, `smithrail` 5), `runServer` und `gradlew build` JDK 25 grün.
+- Straßen-Fixtures: Glockenhöhe per Heightmap, Gegenstellenglocke, `:start`=1, fertige Laterne bei Cursor 16; `Roads.nextConstruction` gibt Baumrodung trotz Querneigung frei. **`roadclear` auf flacher Welt weiterhin rot** (Standplatz/`nextConstruction` null).
 - Audit unverändert **13 implemented, 49 partial**. Nächster Schritt: `roadwork`/`roadclear` auf CTOV oder angepasster Fixture-Höhe grün bekommen; danach J01-Felderweiterung oder G08-Streckenlauf.
 
 ## Lauf 30.10.2026 – Berufszyklen headless (Vorgänger)

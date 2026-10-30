@@ -18,9 +18,18 @@ import net.minecraft.world.level.block.LeavesBlock;
 public final class RoadClearingChecks {
  private RoadClearingChecks() { }
  public static int run(ServerLevel level,BlockPos at) {
+  level.getChunkAt(at);
+  int groundY=level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,at.getX(),at.getZ())-1;
+  at=new BlockPos(at.getX(),groundY+1,at.getZ());
   Checks090.fixtureForEquipment(level, at.east(80));
   var ref=Checks090.fixtureForEquipment(level,at);
-  int groundY=ref.bell().getY()-1;
+  groundY=ref.bell().getY()-1;
+  BlockPos other=at.east(80);
+  var peerRef=Checks090.fixtureForEquipment(level,other);
+  String key=Network.dim(level)+other.asLong();
+  String peerKey=Network.dim(level)+ref.bell().asLong();
+  Network.save(ref.bellEntity(),new TradeNetwork(List.of(),List.of(new TradeNetwork.Link(Network.dim(level),other,"Clearing check",30,true,8,0)),Map.of(),0,0));
+  Network.save(peerRef.bellEntity(),new TradeNetwork(List.of(),List.of(new TradeNetwork.Link(Network.dim(level),ref.bell(),"Clearing check peer",30,true,8,0)),Map.of(),0,0));
   for(int x=9;x<=35;x++)for(int z=-5;z<=12;z++) {
    BlockPos surface=new BlockPos(at.getX()+x,groundY,at.getZ()+z);level.getChunkAt(surface);
    level.setBlock(surface.below(),Blocks.STONE.defaultBlockState(),3);
@@ -29,16 +38,18 @@ public final class RoadClearingChecks {
    level.setBlock(surface.above(2),Blocks.AIR.defaultBlockState(),3);
   }
   BlockPos root=new BlockPos(at.getX()+12,groundY,at.getZ()-1);
-  BlockPos other=at.east(80);String key=Network.dim(level)+other.asLong();
+  level.setBlock(root.below(),Blocks.DIRT.defaultBlockState(),3);
   tree(level,root,5);
-  Network.save(ref.bellEntity(),new TradeNetwork(List.of(),List.of(new TradeNetwork.Link(Network.dim(level),other,"Clearing check",30,true,8,0)),Map.of(),0,0));
-  ref.bellEntity().setAttached(VillagerPlus.ROADS,Map.of(key,12L,key+":start",12L));
+  for(int dx=-3;dx<=3;dx++)for(int dz=-3;dz<=3;dz++) {
+   BlockPos standPad=root.offset(dx,1,dz);level.setBlock(standPad,Blocks.AIR.defaultBlockState(),3);level.setBlock(standPad.above(),Blocks.AIR.defaultBlockState(),3);
+  }
+  Map<String,Long> roads=new java.util.HashMap<>();
+  roads.put(key,12L);roads.put(key+":start",12L);
+  ref.bellEntity().setAttached(VillagerPlus.ROADS,roads);
+  peerRef.bellEntity().setAttached(VillagerPlus.ROADS,Map.of(peerKey,12L,peerKey+":start",12L));
   var v=EntityTypes.VILLAGER.spawn(level,at.south(2),EntitySpawnReason.COMMAND);v.setNoAi(true);v.setInvulnerable(true);v.addTag("vp090_fixture");
   var mem=v.getAttachedOrCreate(VillagerPlus.MEMORY);var st=new JobState();long now=level.getGameTime()+1000;int checks=0;
   try {
-   for(int dx=-2;dx<=2;dx++)for(int dz=-2;dz<=2;dz++) {
-    BlockPos standPad=root.offset(dx,1,dz);level.setBlock(standPad,Blocks.AIR.defaultBlockState(),3);level.setBlock(standPad.above(),Blocks.AIR.defaultBlockState(),3);
-   }
    var first=Roads.nextConstruction(level,ref);
    check(first!=null&&first.removal()!=null&&first.ground().equals(root.above(5))&&level.getBlockState(root.above(5)).is(Blocks.OAK_LOG),"planning identifies highest natural log without remotely clearing; task="+first
     +" column="+RoadClearing.column(level,ref,root.getX(),root.getZ(),new HashMap<>(),"debug")

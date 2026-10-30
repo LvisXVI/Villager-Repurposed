@@ -17,10 +17,13 @@ import net.minecraft.world.level.block.Blocks;
 public final class RoadMaintenanceChecks {
  private RoadMaintenanceChecks() { }
  public static int run(ServerLevel level,BlockPos at) {
+  level.getChunkAt(at);
+  int groundY=level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,at.getX(),at.getZ())-1;
+  at=new BlockPos(at.getX(),groundY+1,at.getZ());
   Checks090.fixtureForEquipment(level, at.east(80));
   var ref=Checks090.fixtureForEquipment(level,at);
   var box=ref.chest(level);box.clearContent();
-  int groundY=ref.bell().getY()-1;
+  groundY=ref.bell().getY()-1;
   BlockPos other=at.east(80);
   var peerRef=Checks090.fixtureForEquipment(level,other);
   int damagedY=groundY;
@@ -30,8 +33,7 @@ public final class RoadMaintenanceChecks {
   Network.save(ref.bellEntity(),new TradeNetwork(List.of(),List.of(new TradeNetwork.Link(Network.dim(level),other,"Road check",30,true,8,0)),Map.of(),0,0));
   Network.save(peerRef.bellEntity(),new TradeNetwork(List.of(),List.of(new TradeNetwork.Link(Network.dim(level),ref.bell(),"Road check peer",30,true,8,0)),Map.of(),0,0));
   Map<String,Long> roads=new java.util.HashMap<>();
-  roads.put(key,24L);roads.put(key+":start",0L);
-  roads.put("light:"+key+":16:1",1L);roads.put("light:"+key+":16:2",1L);roads.put("light:"+key+":16:3",1L);
+  roads.put(key,24L);roads.put(key+":start",1L);
   ref.bellEntity().setAttached(VillagerPlus.ROADS,roads);
   Map<String,Long> peerRoads=new java.util.HashMap<>();
   peerRoads.put(peerKey,24L);peerRoads.put(peerKey+":start",0L);
@@ -42,6 +44,14 @@ public final class RoadMaintenanceChecks {
    level.setBlock(p,(side==0?Blocks.GRAVEL:Blocks.COBBLESTONE).defaultBlockState(),3);
    if(x>=6) {level.setBlock(p.above(),Blocks.AIR.defaultBlockState(),3);level.setBlock(p.above(2),Blocks.AIR.defaultBlockState(),3);}
   }
+  BlockPos lampBase=new BlockPos(at.getX()+16,groundY+1,at.getZ()+1);
+  level.setBlock(lampBase,Blocks.SPRUCE_LOG.defaultBlockState(),3);
+  level.setBlock(lampBase.above(),Blocks.SPRUCE_LOG.defaultBlockState(),3);
+  level.setBlock(lampBase.above(2),Blocks.LANTERN.defaultBlockState(),3);
+  roads=new java.util.HashMap<>(ref.bellEntity().getAttachedOrElse(VillagerPlus.ROADS,Map.of()));
+  peerRoads=new java.util.HashMap<>(peerRef.bellEntity().getAttachedOrElse(VillagerPlus.ROADS,Map.of()));
+  Roads.nextRepair(level,ref);
+  roads=new java.util.HashMap<>(ref.bellEntity().getAttachedOrElse(VillagerPlus.ROADS,Map.of()));
   level.setBlock(damaged,Blocks.GRASS_BLOCK.defaultBlockState(),3);
   var v=EntityTypes.VILLAGER.spawn(level,at.south(2),EntitySpawnReason.COMMAND);
   v.setNoAi(true);v.setInvulnerable(true);v.addTag("vp090_fixture");
