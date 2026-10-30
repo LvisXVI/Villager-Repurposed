@@ -23,6 +23,9 @@ public class SmithJob implements Job {
 		Craft.recipe("Eisenbarren", () -> new ItemStack(Items.IRON_INGOT), Craft.of(Items.IRON_NUGGET, 9)));
 
 	@Override
+	public boolean indoorsDuringStorm() { return true; }
+
+	@Override
 	public java.util.function.Predicate<ItemStack> produce() {
 		return s -> !Meals.isFood(s);
 	}
@@ -79,6 +82,8 @@ public class SmithJob implements Job {
 		if (primary(c)) {
 			return true;
 		}
+		if (Workstation.ensure(c, net.minecraft.world.level.block.Blocks.ANVIL)) return true;
+		if (Workstation.ensure(c, net.minecraft.world.level.block.Blocks.BLAST_FURNACE)) return true;
 		if (EquipmentMaintenance.repairAtToolshed(c)) {
 			return true;
 		}

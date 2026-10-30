@@ -24,6 +24,7 @@ public class PorterJob implements Job {
 			return false;
 		}
 		if (de.villagerplus.village.Caravan.porterDelivery(c)) return true;
+		if (FreightLoading.work(c)) return true;
 		if (JobUtil.depositSurplus(c, produce(), 16, 0)) {
 			return true;
 		}

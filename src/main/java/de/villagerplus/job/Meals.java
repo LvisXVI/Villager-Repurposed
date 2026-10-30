@@ -86,6 +86,7 @@ public final class Meals {
 				: craftingRemainder == null ? ItemStack.EMPTY : craftingRemainder.create();
 			if (!remainder.isEmpty()) JobUtil.give(c.level(), c.v(), remainder);
 		}
+		if (eaten != null && isPreparedFood(eaten)) c.v().setAttached(de.villagerplus.VillagerPlus.PREPARED_MEAL, c.now());
 		c.v().heal(2.0F);
 		c.level().playSound(null, c.v().blockPosition(), SoundEvents.GENERIC_EAT.value(), SoundSource.NEUTRAL, 0.6F, 1.0F);
 		JobUtil.swing(c.v());

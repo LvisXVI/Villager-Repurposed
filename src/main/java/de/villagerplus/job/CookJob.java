@@ -41,8 +41,18 @@ public final class CookJob implements Job {
 		return false;
 	}
 
+	@Override
+	public boolean indoorsDuringStorm() { return true; }
+
 	private static boolean cookFromGranary(Ctx c) {
 		if (c.village() == null) return false;
+		if (Workstation.ensure(c, net.minecraft.world.level.block.Blocks.FURNACE)) return true;
+		var pot = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getOptional(
+			net.minecraft.resources.Identifier.parse("farmersdelight:cooking_pot")).orElse(null);
+		if (pot != null && Workstation.ensure(c, pot)) return true;
+		var board = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getOptional(
+			net.minecraft.resources.Identifier.parse("farmersdelight:cutting_board")).orElse(null);
+		if (board != null && Workstation.ensure(c, board)) return true;
 		if (SmithSmelting.cook(c)) return true;
 		BlockPos origin = de.villagerplus.village.Specials.get(c.village(), "granary");
 		if (origin == null || !c.level().hasChunkAt(origin)) return false;

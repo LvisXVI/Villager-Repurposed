@@ -47,6 +47,9 @@ public class ButcherJob implements Job {
 		if (JobUtil.depositSurplus(c, produce(), 8, 0)) {
 			return true;
 		}
+		if (PenExpansion.work(c)) {
+			return true;
+		}
 		JobState st = c.st();
 		ServerLevel level = c.level();
 		Animal victim = st.targetEntity instanceof Animal a && a.isAlive() ? a : null;

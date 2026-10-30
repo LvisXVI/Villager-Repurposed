@@ -19,7 +19,21 @@ import net.minecraft.world.item.alchemy.PotionContents;
 /** Field medicine: uses a real carried/public potion or food to treat injured members of this village. */
 public class HealerJob implements Job {
 	@Override
-	public boolean primary(Ctx c) { return treat(c); }
+	public boolean primary(Ctx c) {
+		if (holdingHealing(c) && treat(c)) return true;
+		return HealerBrewing.work(c) || treat(c);
+	}
+
+	private static boolean holdingHealing(Ctx c) {
+		var inventory = c.v().getInventory();
+		for (int i = 0; i < inventory.getContainerSize(); i++) if (healingPotion(inventory.getItem(i))) return true;
+		return false;
+	}
+
+	@Override
+	public boolean indoorsDuringStorm() { return true; }
+
+	public static boolean isHealingPotion(ItemStack stack) { return healingPotion(stack); }
 
 	@Override
 	public boolean secondary(Ctx c) { return treat(c); }
@@ -60,7 +74,7 @@ public class HealerJob implements Job {
 		if (consumed.isEmpty()) { c.st().clearTarget(); return false; }
 		PotionContents potion = consumed.get(DataComponents.POTION_CONTENTS);
 		if (potion != null && healingPotion(potion)) {
-			potion.applyToLivingEntity(patient, 1.0F);
+			applyPotion(c, patient, potion);
 		} else {
 			var food = consumed.get(DataComponents.FOOD);
 			int nutrition = food == null ? 2 : Math.max(1, food.nutrition());
@@ -89,6 +103,17 @@ public class HealerJob implements Job {
 			if (healingPotion(stack) || Meals.isFood(stack)) return stack.copyWithCount(1);
 		}
 		return ItemStack.EMPTY;
+	}
+
+	private static void applyPotion(Ctx c, LivingEntity patient, PotionContents potion) {
+		for (MobEffectInstance effect : potion.getAllEffects()) {
+			var mob = effect.getEffect().value();
+			if (mob.isInstantaneous()) {
+				mob.applyInstantaneousEffect(c.level(), c.v(), c.v(), patient, effect.getAmplifier(), 1.0);
+			} else {
+				patient.addEffect(new MobEffectInstance(effect));
+			}
+		}
 	}
 
 	private static boolean healingPotion(ItemStack stack) {

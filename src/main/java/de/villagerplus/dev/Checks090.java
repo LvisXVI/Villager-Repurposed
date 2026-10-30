@@ -281,7 +281,7 @@ public final class Checks090 {
   box.clearContent();
  }
  public static int run(CommandSourceStack source,String mode)throws Exception {
-  if(!java.util.Set.of("ctov","vp-master-test-2026-10-29","vp-master-test-2026-10-30","vp-k04-fresh-2026-10-30","vp-k04-fresh2-2026-10-30","vp-k04-fresh3-2026-10-30","vp-k04-fresh4-2026-10-30","vp-k04-fresh5-2026-10-30","vp-k04-fresh6-2026-10-30","vp-k04-fresh7-2026-10-30","vp-k04-fresh8-2026-10-30","vp-k04-fresh9-2026-10-30","vp-k04-fresh10-2026-10-30","vp-k04-fresh11-2026-10-30","vp-k04-fresh12-2026-10-30","vp-k04-fresh13-2026-10-30","vp-k04-fresh14-2026-10-30","vp-k04-fresh15-2026-10-30","vp-k04-fresh16-2026-10-30","vp-k04-fresh17-2026-10-30","vp-k04-fresh18-2026-10-30","vp-k04-fresh19-2026-10-30","vp-k04-fresh20-2026-10-30").contains(source.getLevel().getServer().getWorldData().getLevelName()))throw new IllegalStateException("Checks only allowed in explicitly named development worlds");
+  if(!java.util.Set.of("ctov","vp-master-test-2026-10-29","vp-master-test-2026-10-30","vp-k04-fresh-2026-10-30","vp-k04-fresh2-2026-10-30","vp-k04-fresh3-2026-10-30","vp-k04-fresh4-2026-10-30","vp-k04-fresh5-2026-10-30","vp-k04-fresh6-2026-10-30","vp-k04-fresh7-2026-10-30","vp-k04-fresh8-2026-10-30","vp-k04-fresh9-2026-10-30","vp-k04-fresh10-2026-10-30","vp-k04-fresh11-2026-10-30","vp-k04-fresh12-2026-10-30","vp-k04-fresh13-2026-10-30","vp-k04-fresh14-2026-10-30","vp-k04-fresh15-2026-10-30","vp-k04-fresh16-2026-10-30","vp-k04-fresh17-2026-10-30","vp-k04-fresh18-2026-10-30","vp-k04-fresh19-2026-10-30","vp-k04-fresh20-2026-10-30","vp-role-test").contains(source.getLevel().getServer().getWorldData().getLevelName()))throw new IllegalStateException("Checks only allowed in explicitly named development worlds");
   ServerLevel level=source.getLevel();ServerPlayer player=level.getServer().getPlayerList().getPlayers().stream().findFirst().orElse(null);
   if(mode.equals("equipment")) {
    int count=EquipmentProductionChecks.run(level,new BlockPos(14000,280,14000));
@@ -357,6 +357,10 @@ public final class Checks090 {
    VillageRef ref=fixture(level,A);
    int count=de.villagerplus.village.CivicCenterChecks.run(level,ref);
    source.sendSuccess(()->Component.literal("VP090 civic PASS "+count+" checks"),false);return count;
+  }
+  if(mode.equals("roles")) {
+   int count=RoleCycleChecks.run(level,new BlockPos(26000,300,26000));
+   source.sendSuccess(()->Component.literal("VP090 roles PASS "+count+" checks"),false);return count;
   }
   if(player==null){source.sendFailure(Component.literal("Connect the development client first."));return 0;}
   if(mode.equals("plaza")) {

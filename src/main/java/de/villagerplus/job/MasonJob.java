@@ -32,7 +32,7 @@ public class MasonJob implements Job {
 		if (c.village() != null && c.village().data().hasPlan() && build(c)) {
 			return true;
 		}
-		return RoadBuilderJob.work(c) || mine(c) || workshop(c) || build(c) || placeTorch(c);
+		return GravelQuarry.work(c) || RoadBuilderJob.work(c) || mine(c) || workshop(c) || build(c) || placeTorch(c);
 	}
 
 	private static boolean build(Ctx c) {
