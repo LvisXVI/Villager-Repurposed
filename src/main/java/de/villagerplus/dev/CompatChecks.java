@@ -21,8 +21,7 @@ public final class CompatChecks {
 	public static int run(ServerLevel level) {
 		int checks = 0;
 		for (String mod : OPTIONAL_MODS) {
-			boolean present = BuiltInRegistries.ITEM.keySet().stream().anyMatch(id -> id.getNamespace().equals(mod))
-				|| BuiltInRegistries.BLOCK.keySet().stream().anyMatch(id -> id.getNamespace().equals(mod));
+			boolean present = modPresent(mod);
 			System.out.println("COMPAT optional mod " + mod + "=" + (present ? "present" : "absent"));
 			checks++;
 		}
@@ -37,6 +36,27 @@ public final class CompatChecks {
 		System.out.println("COMPAT modded villager professions=" + modded);
 		check(modded >= 0, "compat scans modded professions without crashing"); checks++;
 		return checks;
+	}
+
+	/** Fails when any listed dev dependency from {@code docs/modpack-dev-dependencies.md} is absent. */
+	public static int runStrict(ServerLevel level) {
+		int checks = 0;
+		for (String mod : OPTIONAL_MODS) {
+			check(modPresent(mod), "dev dependency namespace " + mod + " is loaded"); checks++;
+		}
+		for (String block : OPTIONAL_BLOCKS) {
+			check(BuiltInRegistries.BLOCK.containsKey(Identifier.parse(block)), "block " + block + " is registered"); checks++;
+		}
+		check(Compat.JOBS.length >= 11, "compat job tag table covers core professions"); checks++;
+		var registry = level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.VILLAGER_PROFESSION);
+		long modded = registry.listElements().filter(h -> !h.key().identifier().getNamespace().equals("minecraft")).count();
+		check(modded > 0, "dev pack exposes at least one modded villager profession"); checks++;
+		return checks;
+	}
+
+	private static boolean modPresent(String mod) {
+		return BuiltInRegistries.ITEM.keySet().stream().anyMatch(id -> id.getNamespace().equals(mod))
+			|| BuiltInRegistries.BLOCK.keySet().stream().anyMatch(id -> id.getNamespace().equals(mod));
 	}
 
 	private static void check(boolean ok, String message) {

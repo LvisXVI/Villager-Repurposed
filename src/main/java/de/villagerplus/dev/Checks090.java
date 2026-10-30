@@ -281,7 +281,7 @@ public final class Checks090 {
   box.clearContent();
  }
  public static int run(CommandSourceStack source,String mode)throws Exception {
-  if(!java.util.Set.of("ctov","vp-master-test-2026-10-29","vp-master-test-2026-10-30","vp-k04-fresh-2026-10-30","vp-k04-fresh2-2026-10-30","vp-k04-fresh3-2026-10-30","vp-k04-fresh4-2026-10-30","vp-k04-fresh5-2026-10-30","vp-k04-fresh6-2026-10-30","vp-k04-fresh7-2026-10-30","vp-k04-fresh8-2026-10-30","vp-k04-fresh9-2026-10-30","vp-k04-fresh10-2026-10-30","vp-k04-fresh11-2026-10-30","vp-k04-fresh12-2026-10-30","vp-k04-fresh13-2026-10-30","vp-k04-fresh14-2026-10-30","vp-k04-fresh15-2026-10-30","vp-k04-fresh16-2026-10-30","vp-k04-fresh17-2026-10-30","vp-k04-fresh18-2026-10-30","vp-k04-fresh19-2026-10-30","vp-k04-fresh20-2026-10-30","vp-role-test").contains(source.getLevel().getServer().getWorldData().getLevelName()))throw new IllegalStateException("Checks only allowed in explicitly named development worlds");
+  if(!java.util.Set.of("ctov","vp-ctov-headless","vp-master-test-2026-10-29","vp-master-test-2026-10-30","vp-k04-fresh-2026-10-30","vp-k04-fresh2-2026-10-30","vp-k04-fresh3-2026-10-30","vp-k04-fresh4-2026-10-30","vp-k04-fresh5-2026-10-30","vp-k04-fresh6-2026-10-30","vp-k04-fresh7-2026-10-30","vp-k04-fresh8-2026-10-30","vp-k04-fresh9-2026-10-30","vp-k04-fresh10-2026-10-30","vp-k04-fresh11-2026-10-30","vp-k04-fresh12-2026-10-30","vp-k04-fresh13-2026-10-30","vp-k04-fresh14-2026-10-30","vp-k04-fresh15-2026-10-30","vp-k04-fresh16-2026-10-30","vp-k04-fresh17-2026-10-30","vp-k04-fresh18-2026-10-30","vp-k04-fresh19-2026-10-30","vp-k04-fresh20-2026-10-30","vp-role-test").contains(source.getLevel().getServer().getWorldData().getLevelName()))throw new IllegalStateException("Checks only allowed in explicitly named development worlds");
   ServerLevel level=source.getLevel();ServerPlayer player=level.getServer().getPlayerList().getPlayers().stream().findFirst().orElse(null);
   if(mode.equals("equipment")) {
    int count=EquipmentProductionChecks.run(level,new BlockPos(14000,280,14000));
@@ -327,20 +327,34 @@ public final class Checks090 {
    int count=de.villagerplus.village.RailTransportChecks.run();
    source.sendSuccess(()->Component.literal("VP090 railtransport PASS "+count+" checks"),false);return count;
   }
+  if(mode.equals("ctov")) {
+   var natural=CtovHeadlessChecks.bootstrap(level);
+   int count=CtovHeadlessChecks.run(level,natural);
+   count+=CompatChecks.runStrict(level);
+   count+=de.villagerplus.job.CookDelightChecks.run(level,natural.bell().offset(200,0,200));
+   count+=de.villagerplus.village.CaravanPorterDeliveryChecks.run(level,new BlockPos(14000,201,14000));
+   count+=de.villagerplus.village.RailEndToEndChecks.run(level,new BlockPos(13000,201,13000));
+   int total=count;
+   source.sendSuccess(()->Component.literal("VP090 ctov PASS "+total+" checks"),false);return count;
+  }
+  if(mode.equals("ctov-verify")) {
+   int count=CtovHeadlessChecks.verify(level);
+   source.sendSuccess(()->Component.literal("VP090 ctov-verify PASS "+count),false);return count;
+  }
   if(mode.equals("railmetro")) {
-   int count=de.villagerplus.village.RailMetropolisChecks.run(level,new BlockPos(19500,280,19500));
+   int count=de.villagerplus.village.RailEndToEndChecks.run(level,new BlockPos(13000,201,13000));
    source.sendSuccess(()->Component.literal("VP090 railmetro PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("caravandelivery")) {
-   int count=de.villagerplus.village.CaravanPorterDeliveryChecks.run(level,new BlockPos(22500,280,22500));
+   int count=de.villagerplus.village.CaravanPorterDeliveryChecks.run(level,new BlockPos(14000,201,14000));
    source.sendSuccess(()->Component.literal("VP090 caravandelivery PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("cookdelight")) {
-   int count=de.villagerplus.job.CookDelightChecks.run(level,new BlockPos(20500,280,20500));
+   int count=de.villagerplus.job.CookDelightChecks.run(level,new BlockPos(13500,201,13500));
    source.sendSuccess(()->Component.literal("VP090 cookdelight PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("compat")) {
-   int count=CompatChecks.run(level);
+   int count=CompatChecks.runStrict(level);
    source.sendSuccess(()->Component.literal("VP090 compat PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("woodcutting")) {

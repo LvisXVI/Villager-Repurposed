@@ -21,13 +21,20 @@ public final class CookDelightChecks {
 
 	public static int run(ServerLevel level, BlockPos at) {
 		level.getChunkAt(at);
-		int groundY = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, at.getX(), at.getZ()) - 1;
-		at = new BlockPos(at.getX(), groundY + 1, at.getZ());
+		level.setBlock(at.below(), Blocks.STONE.defaultBlockState(), 3);
+		level.setBlock(at.above(), Blocks.AIR.defaultBlockState(), 3);
 		var ref = Checks090.fixtureForEquipment(level, at);
 		BlockPos granary = ref.bell().north(14);
 		level.setBlock(granary.below(), Blocks.STONE.defaultBlockState(), 3);
-		level.setBlock(granary, Blocks.CHEST.defaultBlockState(), 3);
-		level.setBlock(granary.east(), Blocks.FURNACE.defaultBlockState(), 3);
+		var potId = Identifier.parse("farmersdelight:cooking_pot");
+		var boardId = Identifier.parse("farmersdelight:cutting_board");
+		var potBlock = BuiltInRegistries.BLOCK.getOptional(potId).orElse(null);
+		var boardBlock = BuiltInRegistries.BLOCK.getOptional(boardId).orElse(null);
+		BlockPos kitchen = granary.east();
+		level.setBlock(kitchen.below(), Blocks.STONE.defaultBlockState(), 3);
+		if (potBlock != null) level.setBlock(kitchen, potBlock.defaultBlockState(), 3);
+		else level.setBlock(kitchen, Blocks.FURNACE.defaultBlockState(), 3);
+		if (boardBlock != null) level.setBlock(kitchen.north(), boardBlock.defaultBlockState(), 3);
 		Specials.set(ref, Blueprints.GRANARY, granary);
 		Container pantry = (Container) level.getBlockEntity(granary);
 		pantry.clearContent();
@@ -36,17 +43,13 @@ public final class CookDelightChecks {
 		cook.addTag("vp090_fixture"); cook.setNoAi(true); cook.setInvulnerable(true);
 		int checks = 0;
 		try {
-			boolean delightPot = BuiltInRegistries.BLOCK.containsKey(Identifier.parse("farmersdelight:cooking_pot"));
-			boolean delightBoard = BuiltInRegistries.BLOCK.containsKey(Identifier.parse("farmersdelight:cutting_board"));
-			System.out.println("COOK delight pot=" + delightPot + " board=" + delightBoard);
-			check(!delightPot || BuiltInRegistries.BLOCK.getOptional(Identifier.parse("farmersdelight:cooking_pot")).isPresent(),
-				"optional cooking pot resolves when Farmer's Delight is installed"); checks++;
+			check(potBlock != null, "Farmer's Delight cooking pot is installed in the dev pack"); checks++;
 			var mem = cook.getAttachedOrCreate(VillagerPlus.MEMORY);
 			var st = JobManager.state(cook);
 			Ctx ctx = new Ctx(level, cook, st, mem, ref, level.getGameTime() + 100);
 			CookJob job = new CookJob();
 			check(job.primary(ctx) || job.secondary(new Ctx(level, cook, st, mem, ref, level.getGameTime() + 200)),
-				"cook job progresses using granary stores and a furnace workstation"); checks++;
+				"cook job progresses using granary stores and a real Delight or furnace workstation"); checks++;
 			check(JobUtil.count(pantry, s -> s.is(Items.WHEAT)) < 9 || JobUtil.count(pantry, s -> s.is(Items.BREAD)) > 0
 				|| st.target != null,
 				"cook consumes pantry wheat, crafts bread, or commits to a workstation target"); checks++;
@@ -54,7 +57,8 @@ public final class CookDelightChecks {
 		} finally {
 			cook.discard();
 			level.setBlock(granary, Blocks.AIR.defaultBlockState(), 3);
-			level.setBlock(granary.east(), Blocks.AIR.defaultBlockState(), 3);
+			level.setBlock(kitchen, Blocks.AIR.defaultBlockState(), 3);
+			if (boardBlock != null) level.setBlock(kitchen.north(), Blocks.AIR.defaultBlockState(), 3);
 			level.setBlock(granary.below(), Blocks.GRASS_BLOCK.defaultBlockState(), 3);
 		}
 	}

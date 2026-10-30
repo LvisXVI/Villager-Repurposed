@@ -189,6 +189,7 @@ public final class Roads {
 
  public static boolean repairable(ServerLevel level,Repair repair) {
   BlockPos p=repair.ground();if(!level.hasChunkAt(p))return false;
+  if(isProtectedLaneCell(level,p))return false;
   if(repair.completionKey()!=null)return lightingRepairable(level,repair);
   if(repair.removal()!=null)return RoadClearing.validTask(level,repair);
   if(repair.bridge())return RoadBridge.validTask(level,repair);
@@ -199,6 +200,19 @@ public final class Roads {
   if(repair.paving().getBlock() instanceof net.minecraft.world.level.block.FallingBlock
    &&!level.getBlockState(p.below()).isFaceSturdy(level,p.below(),net.minecraft.core.Direction.UP))return false;
   return level.getBlockState(p.above()).isAir()&&level.getBlockState(p.above(2)).isAir();
+ }
+
+ /** Do not pave over milestone or communal storage (chests/barrels). */
+ public static boolean isProtectedLaneCell(ServerLevel level,BlockPos ground) {
+  for(int dy=0;dy<=1;dy++) {
+   BlockPos pos=ground.above(dy);
+   if(!level.hasChunkAt(pos))continue;
+   var state=level.getBlockState(pos);
+   if(!(state.getBlock() instanceof net.minecraft.world.level.block.ChestBlock
+    ||state.getBlock() instanceof net.minecraft.world.level.block.BarrelBlock))continue;
+   if(level.getBlockEntity(pos) instanceof net.minecraft.world.Container)return true;
+  }
+  return false;
  }
 
  /** A paid log/log/lantern post is installed by the same physical worker route as road repairs. */
@@ -287,6 +301,12 @@ public final class Roads {
   return false;
  }
 
+ /** Dev/autotest probe for station boarding cursor selection on a paved route. */
+ public static int stationRailStartForCheck(ServerLevel level,BlockPos a,BlockPos b,BlockPos station,Map<String,Long> state,String routeKey) {
+  int length=RoadRoute.length(state,routeKey,a,b);
+  return findStationRailStart(level,a,b,station,length/2+1,length,state,routeKey);
+ }
+
  public static final int METROPOLIS=90;
  public static final int RAIL_POP=8;
 
@@ -332,13 +352,21 @@ public final class Roads {
   int selected=-1;double distance=24*24;
   for(int cursor=0;cursor<=last;cursor++) {
    BlockPos point=RoadRoute.point(state,routeKey,a,b,cursor);
-   if(!level.hasChunkAt(point)||findRailSite(level,point.getX(),point.getZ())==null)continue;
-   int y=level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,point.getX(),point.getZ())-1;
-   BlockState center=level.getBlockState(new BlockPos(point.getX(),y,point.getZ()));
-   if(!(center.is(Blocks.GRAVEL)||center.is(Blocks.SMOOTH_SANDSTONE)||center.is(Blocks.SPRUCE_PLANKS)
-    ||center.getBlock() instanceof net.minecraft.world.level.block.BaseRailBlock))continue;
+   if(!level.hasChunkAt(point))continue;
+   RailSite site=findRailSite(level,point.getX(),point.getZ(),a.getY());
+   if(site==null)continue;
+   BlockState footing=level.getBlockState(site.support());
+   BlockState rail=level.getBlockState(site.rail());
+   if(!(railRoad(footing)||rail.getBlock() instanceof net.minecraft.world.level.block.BaseRailBlock))continue;
    double candidate=station.distSqr(point);
    if(candidate<distance){selected=cursor;distance=candidate;}
+  }
+  if(selected<0) {
+   int fallback=stationStartCursor(a,b,station,last,total);
+   if(fallback>=0) {
+    BlockPos point=RoadRoute.point(state,routeKey,a,b,fallback);
+    if(level.hasChunkAt(point)&&findRailSite(level,point.getX(),point.getZ(),a.getY())!=null)selected=fallback;
+   }
   }
   return selected;
  }
@@ -379,7 +407,7 @@ public final class Roads {
    BlockPos route=RoadRoute.point(state,routeKey,a,b,cursor);int x=route.getX(),z=route.getZ();
    boolean alongX=RoadRoute.alongX(state,routeKey,a,b,cursor);
    BlockPos col=new BlockPos(x,a.getY(),z);if(!level.hasChunkAt(col))break;
-   RailSite site=findRailSite(level,x,z);
+   RailSite site=findRailSite(level,x,z,a.getY());
    if(site==null){
     if(cursor<=length/2&&state.getOrDefault("road:"+key,0L)<1) {state.put("road:"+key,1L);}
     break;
@@ -388,12 +416,15 @@ public final class Roads {
    BlockState existing=level.getBlockState(site.rail());
    boolean alreadyTrack=existing.getBlock() instanceof net.minecraft.world.level.block.BaseRailBlock;
    BlockPos previousPoint=cursor>stationStart?RoadRoute.point(state,routeKey,a,b,cursor-1):null;
-   RailSite previous=previousPoint==null?null:findRailSite(level,previousPoint.getX(),previousPoint.getZ());
+   RailSite previous=previousPoint==null?null:findRailSite(level,previousPoint.getX(),previousPoint.getZ(),a.getY());
    boolean previousRail=previous!=null&&level.getBlockState(previous.rail()).getBlock() instanceof net.minecraft.world.level.block.BaseRailBlock;
    boolean trackPlaced=alreadyTrack;
    if(alreadyTrack&&(!RailTransport.safeRail(level,site.rail())
     ||cursor>stationStart&&(!previousRail||!RailTransport.connected(level,previous.rail(),site.rail()))))break;
-   if(!alreadyTrack&&!existing.isAir())break;
+   if(!alreadyTrack&&!existing.isAir()) {
+    if(!existing.canBeReplaced()||!level.setBlock(site.rail(),Blocks.AIR.defaultBlockState(),3))break;
+    existing=level.getBlockState(site.rail());
+   }
    if(!alreadyTrack) {
     boolean needsSupport=power&&!site.supported();
     if(!RailResources.canPay(level,ref,power,needsSupport))break;
@@ -422,9 +453,11 @@ public final class Roads {
 
  private record RailSite(BlockPos support,BlockPos rail,boolean supported) { }
 
- private static RailSite findRailSite(ServerLevel level,int x,int z) {
+ private static RailSite findRailSite(ServerLevel level,int x,int z,int platformY) {
   int top=level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,x,z)-1;
-  for(int y=top;y>=top-3;y--) {
+  int high=platformY>level.getMinY()+4?Math.max(top,platformY+1):top;
+  int low=Math.min(top-3,platformY>level.getMinY()+4?platformY-4:top-3);
+  for(int y=high;y>=low;y--) {
    BlockPos pos=new BlockPos(x,y,z);BlockState state=level.getBlockState(pos);
    if(state.getBlock() instanceof net.minecraft.world.level.block.BaseRailBlock) {
     BlockPos below=pos.below();return new RailSite(below,pos,level.getBlockState(below).is(Blocks.REDSTONE_BLOCK));
