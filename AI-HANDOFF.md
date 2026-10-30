@@ -1,6 +1,19 @@
 # AI-HANDOFF – Villagers: Repurposed (modid `villagerplus`, Jar `villagers-repurposed-<version>.jar`)
 
-**Aktuelle Übergabe, Codex, 30.10.2026, während laufender Arbeit.** GitHub-Repository: https://github.com/LvisXVI/Villager-Repurposed (privat, Branch `main`). Aktueller Code und die folgenden Nachweise gehen älteren Abschnitten vor.
+**Aktuelle Übergabe, 30.10.2026.** GitHub-Repository: https://github.com/LvisXVI/Villager-Repurposed (privat, Branch `main`). Aktueller Code und die folgenden Nachweise gehen älteren Abschnitten vor.
+
+## Lauf 30.10.2026 – roadclear headless + Merge PR #3
+
+- **`RoadClearing`:** Baumsuche nahe Glockenhöhe (`findLogColumn`), Stand neben Stamm (`standBesideColumn`), Heightmap-Obergrenze relativ zur Glocke.
+- **`RoadClearingChecks`:** Baum auf echter `Roads.laneCell`-Position (Cursor 12, Seite −1), Stand-Pads ohne Stammzerstörung, isolierter Beam-Check, Pflastererwartung auf Grasfläche (`root`).
+- **`Roads`:** `syncRouteGeometry` / `laneCell` für Tests; Headless **`roadclear` 24** + **`roadwork` 9**.
+- `VP_AUTOTEST=headless` auf `vp-role-test`: **163 Checks** (u. a. `roadclear`, `smithrail`), `./gradlew build` JDK 25 grün.
+- PR **#3** in `main` gemergt, sobald CI grün (lokal verifiziert).
+
+## Lauf 30.10.2026 – Schmied-Bahnmaterial + headless 139 (Vorgänger)
+
+## Lauf 30.10.2026 – Berufszyklen headless (Vorgänger)
+
 MASTERPROMPT:
 [external unsupported block: image]
 

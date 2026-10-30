@@ -14,6 +14,9 @@ public class CraftOnlyJob implements Job {
 	}
 
 	@Override
+	public boolean indoorsDuringStorm() { return true; }
+
+	@Override
 	public boolean primary(Ctx c) {
 		if (c.idle(0)) {
 			return false;

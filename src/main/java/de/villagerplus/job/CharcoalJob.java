@@ -20,6 +20,9 @@ public final class CharcoalJob implements Job {
 	private static final int SCAN_COOLDOWN = 1200;
 
 	@Override
+	public boolean indoorsDuringStorm() { return true; }
+
+	@Override
 	public Predicate<ItemStack> produce() { return stack -> stack.is(Items.CHARCOAL); }
 
 	@Override

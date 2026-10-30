@@ -87,20 +87,27 @@ public class DorfschildBlock extends Block {
 			return InteractionResult.SUCCESS;
 		}
 		if (level instanceof ServerLevel sl) {
-			List<Villager> residents = sl.getEntitiesOfClass(Villager.class, new AABB(pos).inflate(40.0),
-				v -> v.isAlive() && v.getAttachedOrCreate(VillagerPlus.MEMORY).homeDoor.map(d -> d.distSqr(pos) <= 16).orElse(false));
-			if (residents.isEmpty()) {
-				VillageMessages.system(player, Component.literal("Dieses Haus steht leer."));
-			} else {
-				VillageMessages.system(player, Component.literal(residents.size() > 1 ? "Haus der Familie:" : "Hier wohnt:"));
-				for (Villager v : residents) {
-					VillagerMemory mem = v.getAttachedOrCreate(VillagerPlus.MEMORY);
-					Wellbeing.Status st = Wellbeing.of(sl, v, mem);
-					VillageMessages.system(player, Component.literal(" • " + (mem.name.isEmpty() ? "?" : mem.name) + " – " + Names.profession(v.getVillagerData().profession())
-						+ " Stufe " + v.getVillagerData().level() + " – " + JobManager.activityOf(v, sl) + " – Stimmung " + st.mood() + " %"));
-				}
-			}
+			for (String line : describe(sl, pos)) VillageMessages.system(player, Component.literal(line));
 		}
 		return InteractionResult.SUCCESS_SERVER;
+	}
+
+	/** Name, Funktion, Bewohner und Status der am Schild gemeldeten Hausbewohner. */
+	public static java.util.List<String> describe(ServerLevel level, BlockPos pos) {
+		java.util.List<String> lines = new java.util.ArrayList<>();
+		List<Villager> residents = level.getEntitiesOfClass(Villager.class, new AABB(pos).inflate(40.0),
+			v -> v.isAlive() && v.getAttachedOrCreate(VillagerPlus.MEMORY).homeDoor.map(d -> d.distSqr(pos) <= 16).orElse(false));
+		if (residents.isEmpty()) {
+			lines.add("Dieses Haus steht leer.");
+			return lines;
+		}
+		lines.add(residents.size() > 1 ? "Haus der Familie:" : "Hier wohnt:");
+		for (Villager v : residents) {
+			VillagerMemory mem = v.getAttachedOrCreate(VillagerPlus.MEMORY);
+			Wellbeing.Status st = Wellbeing.of(level, v, mem);
+			lines.add(" • " + (mem.name.isEmpty() ? "?" : mem.name) + " – " + Names.profession(v.getVillagerData().profession())
+				+ " Stufe " + v.getVillagerData().level() + " – " + JobManager.activityOf(v, level) + " – Stimmung " + st.mood() + " %");
+		}
+		return lines;
 	}
 }

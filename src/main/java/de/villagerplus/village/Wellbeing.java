@@ -155,6 +155,8 @@ public final class Wellbeing {
 		}
 
 		double mood = 0.30 * satiety + 0.25 * energy + 0.20 * social + 0.15 * (home ? 100 : 0) + 0.10 * health + Math.min(10, emeralds / 2.0);
+		long prepared = v.getAttachedOrElse(de.villagerplus.VillagerPlus.PREPARED_MEAL, 0L);
+		if (prepared != 0 && now >= prepared && now - prepared < 6000L) mood += 12;
 
 		VillageRef village = Villages.find(level, v);
 
@@ -167,23 +169,19 @@ public final class Wellbeing {
 	/** Von 4 Arbeitsabschnitten arbeitet der Dorfbewohner so viele (4 = volles Tempo). */
 
 	public static int workQuarters(Status s) {
+		return workQuarters(s, false);
+	}
 
-		if (s.mood() >= 50) {
-
-			return 4;
-
-		} else if (s.mood() >= 35) {
-
-			return 3;
-
-		} else if (s.mood() >= 20) {
-
-			return 2;
-
-		}
-
-		return 1;
-
+	/** Hunger begrenzt das Tempo direkt; eine gekochte Mahlzeit gibt einen zusätzlichen Arbeitsabschnitt. */
+	public static int workQuarters(Status s, boolean preparedMeal) {
+		int pace;
+		if (s.mood() >= 50) pace = 4;
+		else if (s.mood() >= 35) pace = 3;
+		else if (s.mood() >= 20) pace = 2;
+		else pace = 1;
+		if (s.satiety() < 25) pace = Math.min(pace, 2);
+		if (preparedMeal) pace = Math.min(4, pace + 1);
+		return pace;
 	}
 
 	/** Preisaenderung fuer Handelsangebote in Prozent (negativ = Rabatt). */

@@ -189,7 +189,7 @@ public final class Furnisher {
 		placeDoubleChests(level, bb, chests);
 		Block[] pool = switch (type) {
 			case Blueprints.GRANARY -> new Block[] {Blocks.BARREL, Blocks.BARREL, Blocks.HAY_BLOCK, Blocks.BARREL, Blocks.COMPOSTER};
-			case Blueprints.STATION -> new Block[] {Blocks.BARREL, Blocks.BARREL, Blocks.HAY_BLOCK, Blocks.BARREL};
+			case Blueprints.STATION -> new Block[] {Blocks.BARREL, Blocks.BARREL, Blocks.HAY_BLOCK, Blocks.BARREL, Blocks.RAIL, Blocks.POWERED_RAIL};
 			case Blueprints.TOOLSHED -> new Block[] {Blocks.ANVIL, Blocks.GRINDSTONE, Blocks.SMITHING_TABLE, Blocks.BARREL, Blocks.BARREL};
 		default -> new Block[] {Blocks.FURNACE, Blocks.SMOKER, Blocks.BLAST_FURNACE, Blocks.CRAFTING_TABLE, Blocks.CAULDRON, modded("farmersdelight:cooking_pot", Blocks.BARREL),
 				modded("farmersdelight:cutting_board", Blocks.COMPOSTER), Blocks.BARREL};
@@ -221,6 +221,7 @@ public final class Furnisher {
 			}
 			placed++;
 		}
+		if (type.equals(Blueprints.STATION)) StationShed.furnish(level, bb);
 	}
 
 	/** Alle Kisten eines Gebaeudes (bei Doppelkisten nur die linke Haelfte), z.B. fuer ein Lager aus einer Blaupause. */

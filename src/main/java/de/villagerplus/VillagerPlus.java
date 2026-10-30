@@ -106,8 +106,12 @@ public class VillagerPlus implements ModInitializer {
  public static final AttachmentType<java.util.Map<String,Long>> ROADS = AttachmentRegistry.createPersistent(
   Identifier.fromNamespaceAndPath(MOD_ID,"roads"),com.mojang.serialization.Codec.unboundedMap(com.mojang.serialization.Codec.STRING,com.mojang.serialization.Codec.LONG));
 
- /** Last in-game day the village bell signaled the start of work. */
- public static final AttachmentType<Long> LAST_MORNING_BELL = AttachmentRegistry.createPersistent(
+	/** Game time of the villager's last prepared meal. Kept off VillagerMemory because that codec is at its 16-field limit. */
+	public static final AttachmentType<Long> PREPARED_MEAL = AttachmentRegistry.createPersistent(
+		Identifier.fromNamespaceAndPath(MOD_ID, "prepared_meal"), com.mojang.serialization.Codec.LONG);
+
+	/** Last in-game day the village bell signaled the start of work. */
+	public static final AttachmentType<Long> LAST_MORNING_BELL = AttachmentRegistry.createPersistent(
   Identifier.fromNamespaceAndPath(MOD_ID,"last_morning_bell"),com.mojang.serialization.Codec.LONG);
 
 	/** Persistent cursor and pending drops for a woodcutter's in-flight tree. */
@@ -141,6 +145,7 @@ public class VillagerPlus implements ModInitializer {
 		Caravan.register();
 		Guests.register();
 		de.villagerplus.village.RailTransport.register();
+		de.villagerplus.dev.AutoTest.register();
 		de.villagerplus.village.Board.register();
 	}
 }

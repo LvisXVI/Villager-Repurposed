@@ -27,6 +27,19 @@ public final class Roads {
   public Repair(BlockPos ground,BlockState paving,BlockPos worksite,boolean bridge,BlockState removal,BlockPos treeRoot) {this(ground,paving,worksite,bridge,removal,treeRoot,null);}
  }
 
+ /** Ensures stored route geometry for checks and shared cursors. */
+ public static void syncRouteGeometry(ServerLevel level,BlockPos from,BlockPos to,Map<String,Long> state,String key,
+  Map<String,Long> peerState,String peerKey) {
+  RoadRoute.ensureWithRetry(level,from,to,state,key,peerState,peerKey,level.getGameTime(),false);
+ }
+
+ /** Horizontal lane cell for a construction/repair cursor and side (-1..1). */
+ public static BlockPos laneCell(Map<String,Long> state,String key,BlockPos from,BlockPos to,int cursor,int side) {
+  BlockPos route=RoadRoute.point(state,key,from,to,cursor);
+  boolean alongX=RoadRoute.alongX(state,key,from,to,cursor);
+  return new BlockPos(route.getX()+(alongX?0:side),route.getY(),route.getZ()+(alongX?side:0));
+ }
+
  /** One pending lane block. Progress is recovered from real completed lane blocks, including after reload. */
  public static Repair nextConstruction(ServerLevel level,VillageRef ref) {
   Map<String,Long> state=new HashMap<>(ref.bellEntity().getAttachedOrElse(VillagerPlus.ROADS,Map.of()));
@@ -86,6 +99,9 @@ public final class Roads {
      if(pending==null)pending=task;
     }
     boolean badGrade=high-low>1||!RoadRoute.gradeSafe(level,state,key,ref.bell(),link.bell(),cursor);
+    if(pending!=null&&pending.removal()!=null) {
+     ref.bellEntity().setAttached(VillagerPlus.ROADS,Map.copyOf(state));ref.dirty();return pending;
+    }
     if(blocked||badGrade) {
      if(!unavailableChunk&&cursor==startCursor
       &&!routeCursorHasWork(level,state,key,ref.bell(),link.bell(),cursor)

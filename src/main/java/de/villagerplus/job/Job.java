@@ -23,4 +23,9 @@ public interface Job {
 	default int keep() {
 		return 0;
 	}
+
+	/** Gewitter: Innenberufe arbeiten weiter, Außenberufe suchen Unterstand. */
+	default boolean indoorsDuringStorm() {
+		return false;
+	}
 }

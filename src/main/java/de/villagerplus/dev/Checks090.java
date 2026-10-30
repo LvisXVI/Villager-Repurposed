@@ -281,7 +281,7 @@ public final class Checks090 {
   box.clearContent();
  }
  public static int run(CommandSourceStack source,String mode)throws Exception {
-  if(!java.util.Set.of("ctov","vp-master-test-2026-10-29","vp-master-test-2026-10-30","vp-k04-fresh-2026-10-30","vp-k04-fresh2-2026-10-30","vp-k04-fresh3-2026-10-30","vp-k04-fresh4-2026-10-30","vp-k04-fresh5-2026-10-30","vp-k04-fresh6-2026-10-30","vp-k04-fresh7-2026-10-30","vp-k04-fresh8-2026-10-30","vp-k04-fresh9-2026-10-30","vp-k04-fresh10-2026-10-30","vp-k04-fresh11-2026-10-30","vp-k04-fresh12-2026-10-30","vp-k04-fresh13-2026-10-30","vp-k04-fresh14-2026-10-30","vp-k04-fresh15-2026-10-30","vp-k04-fresh16-2026-10-30","vp-k04-fresh17-2026-10-30","vp-k04-fresh18-2026-10-30","vp-k04-fresh19-2026-10-30","vp-k04-fresh20-2026-10-30").contains(source.getLevel().getServer().getWorldData().getLevelName()))throw new IllegalStateException("Checks only allowed in explicitly named development worlds");
+  if(!java.util.Set.of("ctov","vp-master-test-2026-10-29","vp-master-test-2026-10-30","vp-k04-fresh-2026-10-30","vp-k04-fresh2-2026-10-30","vp-k04-fresh3-2026-10-30","vp-k04-fresh4-2026-10-30","vp-k04-fresh5-2026-10-30","vp-k04-fresh6-2026-10-30","vp-k04-fresh7-2026-10-30","vp-k04-fresh8-2026-10-30","vp-k04-fresh9-2026-10-30","vp-k04-fresh10-2026-10-30","vp-k04-fresh11-2026-10-30","vp-k04-fresh12-2026-10-30","vp-k04-fresh13-2026-10-30","vp-k04-fresh14-2026-10-30","vp-k04-fresh15-2026-10-30","vp-k04-fresh16-2026-10-30","vp-k04-fresh17-2026-10-30","vp-k04-fresh18-2026-10-30","vp-k04-fresh19-2026-10-30","vp-k04-fresh20-2026-10-30","vp-role-test").contains(source.getLevel().getServer().getWorldData().getLevelName()))throw new IllegalStateException("Checks only allowed in explicitly named development worlds");
   ServerLevel level=source.getLevel();ServerPlayer player=level.getServer().getPlayerList().getPlayers().stream().findFirst().orElse(null);
   if(mode.equals("equipment")) {
    int count=EquipmentProductionChecks.run(level,new BlockPos(14000,280,14000));
@@ -302,12 +302,16 @@ public final class Checks090 {
    source.sendSuccess(()->Component.literal("VP090 roadroute PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("roadwork")) {
-   int count=de.villagerplus.job.RoadMaintenanceChecks.run(level,new BlockPos(15000,280,15000));
+   int count=de.villagerplus.job.RoadMaintenanceChecks.run(level,new BlockPos(15000,201,15000));
    source.sendSuccess(()->Component.literal("VP090 roadwork PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("roadclear")) {
-   int count=de.villagerplus.job.RoadClearingChecks.run(level,new BlockPos(19000,280,19000));
+   int count=de.villagerplus.job.RoadClearingChecks.run(level,new BlockPos(16500,201,16500));
    source.sendSuccess(()->Component.literal("VP090 roadclear PASS "+count+" checks"),false);return count;
+  }
+  if(mode.equals("smithrail")) {
+   int count=de.villagerplus.job.SmithRailCraftChecks.run(level,new BlockPos(14500,280,14500));
+   source.sendSuccess(()->Component.literal("VP090 smithrail PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("woodcutting")) {
    int count=de.villagerplus.job.WoodcuttingCycleChecks.run();
@@ -357,6 +361,10 @@ public final class Checks090 {
    VillageRef ref=fixture(level,A);
    int count=de.villagerplus.village.CivicCenterChecks.run(level,ref);
    source.sendSuccess(()->Component.literal("VP090 civic PASS "+count+" checks"),false);return count;
+  }
+  if(mode.equals("roles")) {
+   int count=RoleCycleChecks.run(level,new BlockPos(26000,300,26000));
+   source.sendSuccess(()->Component.literal("VP090 roles PASS "+count+" checks"),false);return count;
   }
   if(player==null){source.sendFailure(Component.literal("Connect the development client first."));return 0;}
   if(mode.equals("plaza")) {
@@ -442,6 +450,7 @@ public final class Checks090 {
   passed+=MiningSafetyChecks.run(level,new BlockPos(13000,310,13000));
   passed+=de.villagerplus.job.MineLifecycleChecks.run(level,new BlockPos(24000,280,24000));
   passed+=EquipmentProductionChecks.run(level,new BlockPos(14000,280,14000));
+  passed+=de.villagerplus.job.SmithRailCraftChecks.run(level,new BlockPos(14500,280,14500));
   passed+=de.villagerplus.build.WallConstructionChecks.run(level,a);
   passed+=de.villagerplus.build.BuilderStandChecks.run(level,a);
   passed+=StaffingChecks.run(level,a);
@@ -453,7 +462,7 @@ public final class Checks090 {
   passed+=ZonePolicyChecks.run(a);
   passed+=de.villagerplus.village.RailTransportChecks.run();
   passed+=de.villagerplus.village.RoadsChecks.run();
-  passed+=de.villagerplus.job.RoadMaintenanceChecks.run(level,new BlockPos(15000,280,15000));
+  passed+=de.villagerplus.job.RoadMaintenanceChecks.run(level,new BlockPos(15000,201,15000));
   passed+=de.villagerplus.job.RoadConstructionChecks.run(level,new BlockPos(16000,280,16000));
   passed+=de.villagerplus.job.RoadBridgeChecks.run(level,new BlockPos(17000,280,17000));
   passed+=de.villagerplus.village.CaravanSiteChecks.run(level,new BlockPos(18000,280,18000));
@@ -463,7 +472,7 @@ public final class Checks090 {
   BlockPos caravanRoadFixture=new BlockPos(22000,280,22000);
   for(int x=-16;x<=48;x+=16)for(int z=-16;z<=48;z+=16)level.getChunkAt(caravanRoadFixture.offset(x,0,z));
   passed+=de.villagerplus.village.CaravanRoadChecks.run(level,caravanRoadFixture);
-  passed+=de.villagerplus.job.RoadClearingChecks.run(level,new BlockPos(19000,280,19000));
+  passed+=de.villagerplus.job.RoadClearingChecks.run(level,new BlockPos(15000,201,15000));
   passed+=de.villagerplus.village.RoadTerrainChecks.run(level,A.offset(420,0,420));
   passed+=de.villagerplus.build.BuilderPathChecks.run(level,A.offset(460,0,460));
   passed+=de.villagerplus.village.CivicCenterChecks.run(level,a);

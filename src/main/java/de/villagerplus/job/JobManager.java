@@ -74,6 +74,7 @@ public final class JobManager {
 	private static final Job LIBRARIAN = CraftOnlyJob.librarian();
 	private static final Job PORTER = new PorterJob();
 	private static final Job ROAD_BUILDER = new RoadBuilderJob();
+	private static final Job LAMPLIGHTER = new LamplighterJob();
 
 	private JobManager() {
 	}
@@ -278,11 +279,11 @@ public final class JobManager {
 			Caravan.releasePorter(v);
 			return;
 		}
-		if (level.isThundering() && village != null && !phase.routine) {
-			// Gewitter: Arbeiten im Freien ruhen, die Dorfbewohner suchen Unterstand zu Hause.
+		Job job = jobFor(v);
+		if (level.isThundering() && village != null && !phase.routine && !job.indoorsDuringStorm()) {
+			// Gewitter: Außenarbeit endet, Innenberufe arbeiten weiter, die übrigen suchen Unterstand.
 			phase = Phase.EVENING;
 		}
-		Job job = jobFor(v);
 		JobState st = state(v);
 		Ctx ctx = new Ctx(level, v, st, mem, village, now);
 		if (job != PORTER) Caravan.releasePorter(v);
@@ -332,7 +333,9 @@ public final class JobManager {
 		if (status.satiety() < 25) {
 			Meals.eat(ctx, null);
 		}
-		if ((now / Config.JOB_INTERVAL) % 4 >= Wellbeing.workQuarters(status)) {
+		long preparedAt = v.getAttachedOrElse(VillagerPlus.PREPARED_MEAL, 0L);
+		boolean preparedMeal = preparedAt != 0 && now >= preparedAt && now - preparedAt < 6000L;
+		if ((now / Config.JOB_INTERVAL) % 4 >= Wellbeing.workQuarters(status, preparedMeal)) {
 			ctx.setActivity(status.satiety() < 25 ? "ist hungrig und arbeitet langsam" : "ist " + status.moodLabel().toLowerCase() + " und arbeitet langsam");
 			Anim.apply(v, st, now);
 			return;
@@ -446,6 +449,8 @@ public final class JobManager {
 		if (charcoalTag || (!professionId.startsWith("minecraft:") && (professionId.contains("charcoal") || professionId.contains("coal_burner") || professionId.endsWith(":burner")))) return CHARCOAL;
 		boolean healerTag = hasJobTag(prof, "healer") || hasJobTag(prof, "medic");
 		if (healerTag || (!professionId.startsWith("minecraft:") && (professionId.contains("healer") || professionId.contains("medic")))) return HEALER;
+		boolean lamplighterTag = hasJobTag(prof, "lamplighter");
+		if (lamplighterTag || (!professionId.startsWith("minecraft:") && professionId.contains("lamplight"))) return LAMPLIGHTER;
 		boolean guardTag = hasJobTag(prof, "guard") || hasJobTag(prof, "lookout") || hasJobTag(prof, "adventurer");
 		if (guardTag || (!professionId.startsWith("minecraft:") && (professionId.contains("guard") || professionId.contains("lookout") || professionId.contains("adventurer")))) return GUARD;
 		if (prof.is(VillagerProfession.FARMER)) {

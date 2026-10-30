@@ -89,7 +89,8 @@ public final class StockPolicy {
 			// Non-block ingredients used by the village's ordinary construction recipes.
 			case "stick", "flint", "brick", "nether_brick", "iron_ingot", "iron_nugget", "raw_iron",
 				"copper_ingot", "copper_nugget", "raw_copper", "gold_ingot", "gold_nugget", "coal", "charcoal",
-				"redstone", "quartz", "string", "leather" -> Category.MATERIAL;
+				"redstone", "quartz", "string", "leather", "rail", "powered_rail", "activator_rail", "detector_rail",
+				"minecart", "chest_minecart", "hopper_minecart", "furnace_minecart", "redstone_block" -> Category.MATERIAL;
 			default -> Category.OTHER;
 		};
 	}
