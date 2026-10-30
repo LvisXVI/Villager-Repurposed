@@ -1,0 +1,9 @@
+{
+  "name": "Villagers: Repurposed",
+  "user": "ubuntu",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "install": "set -euo pipefail\nexport JAVA_HOME=/usr/lib/jvm/temurin-25\nexport PATH=\"$JAVA_HOME/bin:$PATH\"\njava -version\nchmod +x ./gradlew\n./gradlew --no-daemon dependencies --configuration compileClasspath\n./gradlew build --no-daemon"
+}

@@ -47,7 +47,7 @@ public final class RoadLightingChecks {
    BlockPos blocked=at.offset(0,0,1);level.setBlock(blocked,Blocks.STONE.defaultBlockState(),3);
    var st=new JobState();var mem=v.getAttachedOrCreate(VillagerPlus.MEMORY);long now=level.getGameTime()+1000;
    int checks=0;
-   try {
+   {
     Ctx c=new Ctx(level,v,st,mem,ref,now);
     var candidate=Roads.nextRepair(level,ref);
     check(candidate!=null&&candidate.ground().equals(at.offset(16,0,1))&&level.getBlockState(blocked).is(Blocks.STONE),
