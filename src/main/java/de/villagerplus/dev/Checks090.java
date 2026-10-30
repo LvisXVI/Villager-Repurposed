@@ -313,6 +313,36 @@ public final class Checks090 {
    int count=de.villagerplus.job.SmithRailCraftChecks.run(level,new BlockPos(14500,280,14500));
    source.sendSuccess(()->Component.literal("VP090 smithrail PASS "+count+" checks"),false);return count;
   }
+  if(mode.equals("milestones")) {
+   var ref=fixtureForEquipment(level,A);
+   int count=de.villagerplus.build.MilestoneWaitingChecks.run(level,ref);
+   source.sendSuccess(()->Component.literal("VP090 milestones PASS "+count+" checks"),false);return count;
+  }
+  if(mode.equals("farmexpand")) {
+   var ref=fixtureForEquipment(level,A);
+   int count=de.villagerplus.job.FarmerExpansionChecks.run(level,ref);
+   source.sendSuccess(()->Component.literal("VP090 farmexpand PASS "+count+" checks"),false);return count;
+  }
+  if(mode.equals("railtransport")) {
+   int count=de.villagerplus.village.RailTransportChecks.run();
+   source.sendSuccess(()->Component.literal("VP090 railtransport PASS "+count+" checks"),false);return count;
+  }
+  if(mode.equals("railmetro")) {
+   int count=de.villagerplus.village.RailMetropolisChecks.run(level,new BlockPos(19500,280,19500));
+   source.sendSuccess(()->Component.literal("VP090 railmetro PASS "+count+" checks"),false);return count;
+  }
+  if(mode.equals("caravandelivery")) {
+   int count=de.villagerplus.village.CaravanPorterDeliveryChecks.run(level,new BlockPos(22500,280,22500));
+   source.sendSuccess(()->Component.literal("VP090 caravandelivery PASS "+count+" checks"),false);return count;
+  }
+  if(mode.equals("cookdelight")) {
+   int count=de.villagerplus.job.CookDelightChecks.run(level,new BlockPos(20500,280,20500));
+   source.sendSuccess(()->Component.literal("VP090 cookdelight PASS "+count+" checks"),false);return count;
+  }
+  if(mode.equals("compat")) {
+   int count=CompatChecks.run(level);
+   source.sendSuccess(()->Component.literal("VP090 compat PASS "+count+" checks"),false);return count;
+  }
   if(mode.equals("woodcutting")) {
    int count=de.villagerplus.job.WoodcuttingCycleChecks.run();
    source.sendSuccess(()->Component.literal("VP090 woodcutting PASS "+count+" checks"),false);return count;

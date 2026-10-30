@@ -275,6 +275,18 @@ public final class Roads {
   ref.bellEntity().setAttached(VillagerPlus.ROADS,Map.copyOf(next));ref.dirty();
  }
 
+ /** Headless/dev check entry for bilateral metropolis rail without duplicating private advance logic. */
+ public static boolean advanceMetropolisRailCheck(ServerLevel level,VillageRef ref,VillageRef peer,Map<String,Long> state,int budget) {
+  if(!reciprocalMetropolis(level,ref,peer)||!Network.projectApproved(ref,peer))return false;
+  for(var link:Network.of(ref.bellEntity()).links()) {
+   if(!link.bell().equals(peer.bell()))continue;
+   advanceRail(level,ref.bell(),link.bell(),"rail"+link.bell().asLong(),state,budget,ref,
+    peer.bellEntity().getAttachedOrElse(VillagerPlus.ROADS,Map.of()));
+   return true;
+  }
+  return false;
+ }
+
  public static final int METROPOLIS=90;
  public static final int RAIL_POP=8;
 
@@ -331,7 +343,7 @@ public final class Roads {
   return selected;
  }
 
- private static boolean reciprocalMetropolis(ServerLevel level,VillageRef source,VillageRef target) {
+ static boolean reciprocalMetropolis(ServerLevel level,VillageRef source,VillageRef target) {
 	  String dimension=Network.dim(level);
   return Network.of(target.bellEntity()).links().stream().anyMatch(link->link.relation()>=METROPOLIS
    &&link.dimension().equals(dimension)&&link.bell().equals(source.bell()));
