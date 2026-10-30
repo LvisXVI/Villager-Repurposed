@@ -1,0 +1,29 @@
+{
+	"schemaVersion": 1,
+	"id": "villagerplus",
+	"version": "${version}",
+	"name": "Villagers: Repurposed",
+	"description": "Dorfbewohner arbeiten wirklich, bauen das Dorf aus, reparieren Eisengolems und haben ein langes Gedächtnis.",
+	"authors": ["Luis"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["de.villagerplus.VillagerPlus"],
+		"client": ["de.villagerplus.client.VillagerPlusClient"]
+	},
+	"mixins": ["villagerplus.mixins.json"],
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"ctov": "*",
+		"lithostitched": "*",
+		"cloth-config": "*",
+		"easy_villagers": "*",
+		"villagernames": "*",
+		"guardvillagers": "*"
+	}
+}

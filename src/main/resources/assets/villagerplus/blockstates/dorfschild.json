@@ -1,0 +1,745 @@
+{
+ "multipart": [
+  {
+   "when": {
+    "facing": "north",
+    "icon": "0"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_0"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "1"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_1"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "2"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_2"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "3"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_3"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "4"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_4"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "5"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_5"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "6"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_6"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "7"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_7"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "8"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_8"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "9"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_9"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "10"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_10"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "11"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_11"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "12"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_12"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "icon": "13"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_13"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "level": "1"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_1"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "level": "2"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_2"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "level": "3"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_3"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "level": "4"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_4"
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "level": "5"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_5"
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "0"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_0",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "1"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_1",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "2"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_2",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "3"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_3",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "4"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_4",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "5"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_5",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "6"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_6",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "7"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_7",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "8"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_8",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "9"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_9",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "10"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_10",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "11"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_11",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "12"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_12",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "icon": "13"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_13",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "level": "1"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_1",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "level": "2"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_2",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "level": "3"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_3",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "level": "4"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_4",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "level": "5"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_5",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "0"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_0",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "1"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_1",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "2"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_2",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "3"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_3",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "4"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_4",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "5"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_5",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "6"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_6",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "7"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_7",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "8"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_8",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "9"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_9",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "10"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_10",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "11"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_11",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "12"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_12",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "icon": "13"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_13",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "level": "1"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_1",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "level": "2"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_2",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "level": "3"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_3",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "level": "4"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_4",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "level": "5"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_5",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "0"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_0",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "1"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_1",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "2"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_2",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "3"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_3",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "4"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_4",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "5"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_5",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "6"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_6",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "7"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_7",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "8"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_8",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "9"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_9",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "10"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_10",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "11"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_11",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "12"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_12",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "icon": "13"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_13",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "level": "1"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_1",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "level": "2"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_2",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "level": "3"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_3",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "level": "4"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_4",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "level": "5"
+   },
+   "apply": {
+    "model": "villagerplus:block/dorfschild_stars_5",
+    "y": 270
+   }
+  }
+ ]
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "PBP",
+    " S "
+  ],
+  "key": {
+    "P": "#minecraft:planks",
+    "B": "minecraft:bell",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "villagerplus:dorftafel",
+    "count": 1
+  }
+}

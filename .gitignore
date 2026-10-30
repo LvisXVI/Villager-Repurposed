@@ -1,0 +1,32 @@
+# Gradle and build output
+.gradle/
+/build/
+/build-*/
+/build (# Name clash */
+
+# Minecraft development data and generated output
+/run/
+/outputs/
+/screenshots/
+/logs/
+**/crash-reports/
+**/hs_err_pid*
+**/replay_pid*
+
+# Local logs and diagnostics
+*.log
+*.err.log
+
+# Local IDE and agent state
+.idea/
+.vscode/
+.agents/
+.claude/
+AGENTS.override.md
+
+# Generated one-off source bundle
+/tools/master-base-sources.jar
+/tools/master-changes.patch
+
+# Conflict snapshot retained by the workspace tooling
+/src/main/java/de/villagerplus/village/Sites (# Edit conflict *.java
