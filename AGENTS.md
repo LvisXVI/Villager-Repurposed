@@ -11,3 +11,10 @@
 - Ohne neue ausdrückliche Nutzeranweisung keine Computersteuerung (CUA). Datei-, Code-, RCON- und dokumentierte Dev-Testhooks bleiben für die Modarbeit nutzbar.
 - Vor Abschluss `AI-HANDOFF.md` und aktive Taskdateien mit tatsächlichen Prüfungen und dem nächsten konkreten Schritt aktualisieren. Vollpack-Kompatibilität nur nach entsprechendem Lauf behaupten.
 
+## Cursor Cloud specific instructions
+
+- JDK 25 (Temurin 25.0.5+8) ist unter `/usr/lib/jvm/temurin-25` installiert und das Standard-`java`. `JAVA_HOME` setzt `/etc/profile.d/java25.sh`. Der Windows-Pfad `..\_tools\jdk` existiert hier nicht.
+- Linux-Build im Repo-Root: `./gradlew build --no-daemon`. Wenn die Shell `gradlew` nicht ausführt: `chmod +x ./gradlew`. Dev-Server und Dev-Client vorher stoppen.
+- Dev-Server: `./gradlew runServer`. Der erste Start legt `run/` an und verlangt `eula=true` in `run/eula.txt`. `/vptest090` läuft nur in namentlich freigegebenen Entwicklungswelten und startet nicht beim Boot.
+- Keine Secrets. Gradle lädt Abhängigkeiten von `services.gradle.org`, `maven.fabricmc.net` und Mojang.
+
