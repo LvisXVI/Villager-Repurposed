@@ -2,12 +2,14 @@
 
 **Aktuelle Übergabe, 30.10.2026.** GitHub-Repository: https://github.com/LvisXVI/Villager-Repurposed (privat, Branch `main`). Aktueller Code und die folgenden Nachweise gehen älteren Abschnitten vor.
 
-## Lauf 30.10.2026 – Berufszyklen headless
+## Lauf 30.10.2026 – Schmied-Bahnmaterial + headless 130
 
-- Neu und im Dedicated Server geprüft (`VP_AUTOTEST=headless`, Welt `vp-role-test`, 125 Checks, `runServer` BUILD SUCCESSFUL): Laternenanzünder bei Blocklicht unter 1, Braustand von Wasser über Awkward bis Heiltrank (Lebenspunkte 4→8, Glasflasche bleibt), Wachturm- und Bahnhofsposten plus Nahkampf, Stallanbau ab 9 Hühnern, Beladen einer angedockten Güterlore, Schotterabbau mit Rissstufen, Ofencraft an der Werkbank, überdachter Lokschuppen, Hausschildtext, Hunger- und Mahlzeiten-Tempo.
-- `gradlew build` mit JDK 25: BUILD SUCCESSFUL. `roadwork` und `roadclear` finden auf der flachen Welt kein Auftragsziel und gelten hier nicht als bestanden; ihr früherer CTOV-Nachweis bleibt der letzte grüne Lauf.
-- Farmer’s Delight, Chef’s Delight, Village Taverns, Fresh Animations/EMF/ETF, More Villagers, Serene Seasons, Towns and Towers und Actually 3D Stuff waren nicht installiert. Registry-Erkennung bleibt kein Kompatibilitätstest.
-- Audit: **13 implemented, 49 partial**. Nächster Schritt: Modpack-Jars in die Dev-Umgebung legen und die noch partialen Punkte J02, J12, G08, D03–D08 an einer echten CTOV-Strecke prüfen.
+- `SmithRailCraft`/`SmithRailCraftChecks`: Schmied craftet bei Metropolen-Straßenlink und knappem Bestand echte Schienen an der Werkbank (Zutaten aus Dorfkiste, 16× Schiene, Ablage via `StockPolicy.insertVillage`). `StockPolicy` routet Schienen/Loren/Redstone-Block als Baustoff.
+- `VP_AUTOTEST=headless` auf `vp-role-test`: **130 Checks** (`roles` 44, `equipment` 11, `mining` 11, `roads` 9, `woodcutting` 6, `caravansites` 32, `minelifecycle` 6, `houses` 4, `civic` 2, `smithrail` 5), `runServer` und `gradlew build` mit JDK 25 **BUILD SUCCESSFUL**.
+- Straßen-Fixtures (`RoadMaintenanceChecks`, `RoadClearingChecks`): Gegenstellen-Link, festes `groundY`, Lampen-Cursor-Markierungen und `RoadBuilderJob`-Pickup mit Komponentenerhalt; `roadwork`/`roadclear` auf der flachen Welt noch nicht grün (CTOV-Nachweis bleibt maßgeblich).
+- Audit unverändert **13 implemented, 49 partial**. Nächster Schritt: `roadwork`/`roadclear` auf CTOV oder angepasster Fixture-Höhe grün bekommen; danach J01-Felderweiterung oder G08-Streckenlauf.
+
+## Lauf 30.10.2026 – Berufszyklen headless (Vorgänger)
 
 MASTERPROMPT:
 [external unsupported block: image]

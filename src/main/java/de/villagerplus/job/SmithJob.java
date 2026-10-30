@@ -90,6 +90,9 @@ public class SmithJob implements Job {
 		if (EquipmentProduction.work(c)) {
 			return true;
 		}
+		if (SmithRailCraft.work(c)) {
+			return true;
+		}
 		if (SmithSmelting.work(c)) {
 			return true;
 		}

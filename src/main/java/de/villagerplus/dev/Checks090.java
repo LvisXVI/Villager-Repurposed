@@ -302,12 +302,16 @@ public final class Checks090 {
    source.sendSuccess(()->Component.literal("VP090 roadroute PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("roadwork")) {
-   int count=de.villagerplus.job.RoadMaintenanceChecks.run(level,new BlockPos(15000,280,15000));
+   int count=de.villagerplus.job.RoadMaintenanceChecks.run(level,new BlockPos(15000,201,15000));
    source.sendSuccess(()->Component.literal("VP090 roadwork PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("roadclear")) {
    int count=de.villagerplus.job.RoadClearingChecks.run(level,new BlockPos(19000,280,19000));
    source.sendSuccess(()->Component.literal("VP090 roadclear PASS "+count+" checks"),false);return count;
+  }
+  if(mode.equals("smithrail")) {
+   int count=de.villagerplus.job.SmithRailCraftChecks.run(level,new BlockPos(14500,280,14500));
+   source.sendSuccess(()->Component.literal("VP090 smithrail PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("woodcutting")) {
    int count=de.villagerplus.job.WoodcuttingCycleChecks.run();
@@ -446,6 +450,7 @@ public final class Checks090 {
   passed+=MiningSafetyChecks.run(level,new BlockPos(13000,310,13000));
   passed+=de.villagerplus.job.MineLifecycleChecks.run(level,new BlockPos(24000,280,24000));
   passed+=EquipmentProductionChecks.run(level,new BlockPos(14000,280,14000));
+  passed+=de.villagerplus.job.SmithRailCraftChecks.run(level,new BlockPos(14500,280,14500));
   passed+=de.villagerplus.build.WallConstructionChecks.run(level,a);
   passed+=de.villagerplus.build.BuilderStandChecks.run(level,a);
   passed+=StaffingChecks.run(level,a);
@@ -457,7 +462,7 @@ public final class Checks090 {
   passed+=ZonePolicyChecks.run(a);
   passed+=de.villagerplus.village.RailTransportChecks.run();
   passed+=de.villagerplus.village.RoadsChecks.run();
-  passed+=de.villagerplus.job.RoadMaintenanceChecks.run(level,new BlockPos(15000,280,15000));
+  passed+=de.villagerplus.job.RoadMaintenanceChecks.run(level,new BlockPos(15000,201,15000));
   passed+=de.villagerplus.job.RoadConstructionChecks.run(level,new BlockPos(16000,280,16000));
   passed+=de.villagerplus.job.RoadBridgeChecks.run(level,new BlockPos(17000,280,17000));
   passed+=de.villagerplus.village.CaravanSiteChecks.run(level,new BlockPos(18000,280,18000));

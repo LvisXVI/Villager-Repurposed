@@ -17,14 +17,27 @@ import net.minecraft.world.level.block.Blocks;
 public final class RoadMaintenanceChecks {
  private RoadMaintenanceChecks() { }
  public static int run(ServerLevel level,BlockPos at) {
+  Checks090.fixtureForEquipment(level, at.east(80));
   var ref=Checks090.fixtureForEquipment(level,at);
   var box=ref.chest(level);box.clearContent();
-  BlockPos other=at.east(80),damaged=at.east(20).below();
+  int groundY=ref.bell().getY()-1;
+  BlockPos other=at.east(80);
+  var peerRef=Checks090.fixtureForEquipment(level,other);
+  int damagedY=groundY;
+  BlockPos damaged=new BlockPos(at.getX()+20,damagedY,at.getZ());
   String key=Network.dim(level)+other.asLong();
+  String peerKey=Network.dim(level)+ref.bell().asLong();
   Network.save(ref.bellEntity(),new TradeNetwork(List.of(),List.of(new TradeNetwork.Link(Network.dim(level),other,"Road check",30,true,8,0)),Map.of(),0,0));
-  ref.bellEntity().setAttached(VillagerPlus.ROADS,Map.of(key,24L));
+  Network.save(peerRef.bellEntity(),new TradeNetwork(List.of(),List.of(new TradeNetwork.Link(Network.dim(level),ref.bell(),"Road check peer",30,true,8,0)),Map.of(),0,0));
+  Map<String,Long> roads=new java.util.HashMap<>();
+  roads.put(key,24L);roads.put(key+":start",0L);
+  roads.put("light:"+key+":16:1",1L);roads.put("light:"+key+":16:2",1L);roads.put("light:"+key+":16:3",1L);
+  ref.bellEntity().setAttached(VillagerPlus.ROADS,roads);
+  Map<String,Long> peerRoads=new java.util.HashMap<>();
+  peerRoads.put(peerKey,24L);peerRoads.put(peerKey+":start",0L);
+  peerRef.bellEntity().setAttached(VillagerPlus.ROADS,peerRoads);
   for(int x=0;x<24;x++)for(int side=-1;side<=1;side++) {
-   BlockPos p=at.offset(x,-1,side);level.getChunkAt(p);
+   BlockPos p=new BlockPos(at.getX()+x,groundY,at.getZ()+side);level.getChunkAt(p);
    level.setBlock(p.below(),Blocks.STONE.defaultBlockState(),3);
    level.setBlock(p,(side==0?Blocks.GRAVEL:Blocks.COBBLESTONE).defaultBlockState(),3);
    if(x>=6) {level.setBlock(p.above(),Blocks.AIR.defaultBlockState(),3);level.setBlock(p.above(2),Blocks.AIR.defaultBlockState(),3);}
@@ -39,7 +52,8 @@ public final class RoadMaintenanceChecks {
    check(!RoadBuilderJob.maintain(c)&&level.getBlockState(damaged).is(Blocks.GRASS_BLOCK),"no stock leaves road unchanged");checks++;
    ItemStack gravel=new ItemStack(Items.GRAVEL,8);
    gravel.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,net.minecraft.network.chat.Component.literal("Straßenkies"));
-   box.setItem(0,gravel);st.roadScanAt=0;
+   box.setItem(0,gravel);
+   st=new JobState();c=new Ctx(level,v,st,mem,ref,now+1);st.roadScanAt=0;
    BlockPos depot=ref.chestPos(level);v.teleportTo(depot.getX()+.5,depot.getY(),depot.getZ()+1.5);
    check(RoadBuilderJob.maintain(c)&&box.getItem(0).getCount()==7&&JobUtil.count(v.getInventory(),s->s.is(Items.GRAVEL))==1,"arrival at communal depot transfers exactly one paving block");checks++;
    check(ItemStack.isSameItemSameComponents(v.getInventory().getItem(0),box.getItem(0)),"material pickup preserves stack components");checks++;

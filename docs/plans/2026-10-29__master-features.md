@@ -14,7 +14,8 @@ Gründe: [Entscheidungen](../chronicles/2026-10-29__master-features.md).
 ## Fortschritt 30.10.2026 – headless Berufszyklen
 
 - [x] Laternenanzünder, Braustand, Wachposten/Nahkampf, Stallanbau, Güterlore, Schotterbruch, Werkbank-Ofen, Lokschuppen, Schildtext und Arbeitstempo. Nachweis: `VP_AUTOTEST=headless`, 125 Checks, `runServer` und `build` BUILD SUCCESSFUL.
-- [ ] Modpack-Jars fehlen weiter. `roadwork`/`roadclear` auf der flachen Welt ohne Auftragsziel. Natürliche CTOV-Strecke, Raid und Taverne bleiben offen. Audit 13/62 vollständig.
+- [x] Schmied-Bahnmaterial (`SmithRailCraft`) und headless **130 Checks** inkl. `smithrail` 5. `gradlew build` JDK 25 grün.
+- [ ] `roadwork`/`roadclear` auf flacher Welt noch rot; CTOV-Fixture-Höhe/`nextConstruction`-Profil als Nächstes. Audit 13/62 vollständig.
 
 ## Ergebnis und Grenzen
 

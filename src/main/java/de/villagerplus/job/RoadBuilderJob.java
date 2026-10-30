@@ -79,8 +79,11 @@ public final class RoadBuilderJob implements Job {
                 for(int slot=0;slot<box.getContainerSize();slot++) {
                     ItemStack sample=box.getItem(slot);
                     if(!sample.is(item))continue;
-                    if(!c.v().getInventory().canAddItem(sample.copyWithCount(1)))return false;
-                    c.v().getInventory().addItem(box.removeItem(slot,1));box.setChanged();break;
+                    ItemStack taken=sample.copyWithCount(1);
+                    if(!c.v().getInventory().canAddItem(taken))return false;
+                    sample.shrink(1);
+                    if(sample.isEmpty())box.setItem(slot,ItemStack.EMPTY);
+                    c.v().getInventory().addItem(taken);box.setChanged();break;
                 }
                 return true;
             }
