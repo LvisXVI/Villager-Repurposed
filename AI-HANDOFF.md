@@ -1,6 +1,14 @@
 # AI-HANDOFF – Villagers: Repurposed (modid `villagerplus`, Jar `villagers-repurposed-<version>.jar`)
 
-**Aktuelle Übergabe, Codex, 30.10.2026, während laufender Arbeit.** GitHub-Repository: https://github.com/LvisXVI/Villager-Repurposed (privat, Branch `main`). Aktueller Code und die folgenden Nachweise gehen älteren Abschnitten vor.
+**Aktuelle Übergabe, 30.10.2026.** GitHub-Repository: https://github.com/LvisXVI/Villager-Repurposed (privat, Branch `main`). Aktueller Code und die folgenden Nachweise gehen älteren Abschnitten vor.
+
+## Lauf 30.10.2026 – Berufszyklen headless
+
+- Neu und im Dedicated Server geprüft (`VP_AUTOTEST=headless`, Welt `vp-role-test`, 125 Checks, `runServer` BUILD SUCCESSFUL): Laternenanzünder bei Blocklicht unter 1, Braustand von Wasser über Awkward bis Heiltrank (Lebenspunkte 4→8, Glasflasche bleibt), Wachturm- und Bahnhofsposten plus Nahkampf, Stallanbau ab 9 Hühnern, Beladen einer angedockten Güterlore, Schotterabbau mit Rissstufen, Ofencraft an der Werkbank, überdachter Lokschuppen, Hausschildtext, Hunger- und Mahlzeiten-Tempo.
+- `gradlew build` mit JDK 25: BUILD SUCCESSFUL. `roadwork` und `roadclear` finden auf der flachen Welt kein Auftragsziel und gelten hier nicht als bestanden; ihr früherer CTOV-Nachweis bleibt der letzte grüne Lauf.
+- Farmer’s Delight, Chef’s Delight, Village Taverns, Fresh Animations/EMF/ETF, More Villagers, Serene Seasons, Towns and Towers und Actually 3D Stuff waren nicht installiert. Registry-Erkennung bleibt kein Kompatibilitätstest.
+- Audit: **13 implemented, 49 partial**. Nächster Schritt: Modpack-Jars in die Dev-Umgebung legen und die noch partialen Punkte J02, J12, G08, D03–D08 an einer echten CTOV-Strecke prüfen.
+
 MASTERPROMPT:
 [external unsupported block: image]
 

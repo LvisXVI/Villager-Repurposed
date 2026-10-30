@@ -11,6 +11,11 @@ chronicle: docs/chronicles/2026-10-29__master-features
 
 Gründe: [Entscheidungen](../chronicles/2026-10-29__master-features.md).
 
+## Fortschritt 30.10.2026 – headless Berufszyklen
+
+- [x] Laternenanzünder, Braustand, Wachposten/Nahkampf, Stallanbau, Güterlore, Schotterbruch, Werkbank-Ofen, Lokschuppen, Schildtext und Arbeitstempo. Nachweis: `VP_AUTOTEST=headless`, 125 Checks, `runServer` und `build` BUILD SUCCESSFUL.
+- [ ] Modpack-Jars fehlen weiter. `roadwork`/`roadclear` auf der flachen Welt ohne Auftragsziel. Natürliche CTOV-Strecke, Raid und Taverne bleiben offen. Audit 13/62 vollständig.
+
 ## Ergebnis und Grenzen
 
 Der Nutzer autorisierte am 29.10.2026 ausdrücklich die Fortsetzung aller offenen Punkte. Bestehender Fabric-26.2-Code und gespeicherte Welten bleiben Ausgangspunkt. Ältere Handoff-Aussagen sind kein Funktionsnachweis. Kein Git-Repository; keine Veröffentlichung beauftragt. Referenzbilder 2–4 liegen diesem Chat nicht vor; visuelle Umsetzung orientiert sich bis dahin an vorhandenen Ingame-Assets.
