@@ -30,23 +30,36 @@ public final class RoadClearingChecks {
   String peerKey=Network.dim(level)+ref.bell().asLong();
   Network.save(ref.bellEntity(),new TradeNetwork(List.of(),List.of(new TradeNetwork.Link(Network.dim(level),other,"Clearing check",30,true,8,0)),Map.of(),0,0));
   Network.save(peerRef.bellEntity(),new TradeNetwork(List.of(),List.of(new TradeNetwork.Link(Network.dim(level),ref.bell(),"Clearing check peer",30,true,8,0)),Map.of(),0,0));
-  for(int x=9;x<=35;x++)for(int z=-5;z<=12;z++) {
-   BlockPos surface=new BlockPos(at.getX()+x,groundY,at.getZ()+z);level.getChunkAt(surface);
+  int constructionCursor=12;
+  Map<String,Long> roads=new java.util.HashMap<>();
+  roads.put(key,(long)constructionCursor);roads.put(key+":start",1L);
+  Map<String,Long> peerRoads=new java.util.HashMap<>();
+  peerRoads.put(peerKey,(long)constructionCursor);peerRoads.put(peerKey+":start",0L);
+  ref.bellEntity().setAttached(VillagerPlus.ROADS,roads);
+  peerRef.bellEntity().setAttached(VillagerPlus.ROADS,peerRoads);
+  roads=new java.util.HashMap<>(ref.bellEntity().getAttachedOrElse(VillagerPlus.ROADS,Map.of()));
+  peerRoads=new java.util.HashMap<>(peerRef.bellEntity().getAttachedOrElse(VillagerPlus.ROADS,Map.of()));
+  Roads.syncRouteGeometry(level,ref.bell(),peerRef.bell(),roads,key,peerRoads,peerKey);
+  ref.bellEntity().setAttached(VillagerPlus.ROADS,roads);
+  peerRef.bellEntity().setAttached(VillagerPlus.ROADS,peerRoads);
+  BlockPos lane=Roads.laneCell(roads,key,ref.bell(),peerRef.bell(),constructionCursor,-1);
+  for(int x=Math.min(at.getX()+9,lane.getX()-2);x<=Math.max(at.getX()+35,lane.getX()+2);x++)for(int z=Math.min(at.getZ()-5,lane.getZ()-2);z<=Math.max(at.getZ()+12,lane.getZ()+2);z++) {
+   BlockPos surface=new BlockPos(x,groundY,z);level.getChunkAt(surface);
    level.setBlock(surface.below(),Blocks.STONE.defaultBlockState(),3);
    level.setBlock(surface,Blocks.GRASS_BLOCK.defaultBlockState(),3);
    level.setBlock(surface.above(),Blocks.AIR.defaultBlockState(),3);
    level.setBlock(surface.above(2),Blocks.AIR.defaultBlockState(),3);
   }
-  BlockPos root=new BlockPos(at.getX()+12,groundY,at.getZ()-1);
+  BlockPos root=new BlockPos(lane.getX(),groundY,lane.getZ());
   level.setBlock(root.below(),Blocks.DIRT.defaultBlockState(),3);
   tree(level,root,5);
   for(int dx=-3;dx<=3;dx++)for(int dz=-3;dz<=3;dz++) {
+   if(dx==0&&dz==0)continue;
    BlockPos standPad=root.offset(dx,1,dz);level.setBlock(standPad,Blocks.AIR.defaultBlockState(),3);level.setBlock(standPad.above(),Blocks.AIR.defaultBlockState(),3);
   }
-  Map<String,Long> roads=new java.util.HashMap<>();
-  roads.put(key,12L);roads.put(key+":start",12L);
-  ref.bellEntity().setAttached(VillagerPlus.ROADS,roads);
-  peerRef.bellEntity().setAttached(VillagerPlus.ROADS,Map.of(peerKey,12L,peerKey+":start",12L));
+  check(level.getBlockState(root.above(1)).is(Blocks.OAK_LOG)&&level.getBlockState(root.above(5)).is(Blocks.OAK_LOG),
+   "fixture tree missing at lane "+root);
+  Roads.nextRepair(level,ref);
   var v=EntityTypes.VILLAGER.spawn(level,at.south(2),EntitySpawnReason.COMMAND);v.setNoAi(true);v.setInvulnerable(true);v.addTag("vp090_fixture");
   var mem=v.getAttachedOrCreate(VillagerPlus.MEMORY);var st=new JobState();long now=level.getGameTime()+1000;int checks=0;
   try {
@@ -72,9 +85,12 @@ public final class RoadClearingChecks {
     check(level.getBlockState(task.ground()).isAir()&&JobUtil.count(v.getInventory(),s->s.is(Items.OAK_LOG))==6-log,"final stroke produces exactly one real carried log");checks++;
    }
    var paving=Roads.nextConstruction(level,ref);
-   check(paving!=null&&paving.removal()==null&&paving.ground().equals(root.below()),"cleared tree transitions to the original soil height for paid paving");checks++;
-   BlockPos beam=at.offset(24,0,0);tree(level,beam,1);
-   check(RoadClearing.column(level,ref,beam.getX(),beam.getZ(),new HashMap<>(),"beam")==null&&level.getBlockState(beam).is(Blocks.OAK_LOG),"isolated placed timber is protected even near leaves");checks++;
+   check(paving!=null&&paving.removal()==null&&paving.ground().equals(root),"cleared tree transitions to the original soil height for paid paving");checks++;
+   BlockPos beam=at.offset(24,0,0);
+   for(int y=groundY-2;y<=groundY+20;y++)level.setBlock(new BlockPos(beam.getX(),y,beam.getZ()),Blocks.AIR.defaultBlockState(),3);
+   level.setBlock(beam.below(),Blocks.STONE.defaultBlockState(),3);
+   tree(level,beam,1);
+   check(RoadClearing.column(level,ref,beam.getX(),beam.getZ(),new HashMap<>(),"beam")==null&&level.getBlockState(beam.above(1)).is(Blocks.OAK_LOG),"isolated placed timber is protected even near leaves");checks++;
    tree(level,beam,5);level.setBlock(beam.east(),Blocks.OAK_PLANKS.defaultBlockState(),3);
    check(RoadClearing.column(level,ref,beam.getX(),beam.getZ(),new HashMap<>(),"house")==null,"structural planks next to rooted logs prevent clearing");checks++;
    level.setBlock(beam.east(),Blocks.AIR.defaultBlockState(),3);level.setBlock(beam.east(),Blocks.BARREL.defaultBlockState(),3);

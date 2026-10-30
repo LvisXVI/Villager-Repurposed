@@ -6,7 +6,7 @@ import net.fabricmc.loader.api.FabricLoader;
 /** Development-only: {@code VP_AUTOTEST=roles} runs one headless check mode and exits. */
 public final class AutoTest {
 	private static final String[] HEADLESS = {
-		"roles", "equipment", "mining", "roads", "roadwork", "woodcutting", "caravansites", "minelifecycle",
+		"roles", "equipment", "mining", "roads", "roadwork", "roadclear", "woodcutting", "caravansites", "minelifecycle",
 		"houses", "civic", "smithrail"
 	};
 

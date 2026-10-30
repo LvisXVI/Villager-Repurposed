@@ -17,10 +17,20 @@ public final class RoadClearing {
  public static Column column(ServerLevel level,VillageRef ref,int x,int z,Map<String,Long> state,String key) {
   int referenceY=ref==null?level.getMinY():ref.bell().getY();
   if(!level.hasChunkAt(new BlockPos(x,referenceY,z)))return null;
-  BlockPos top=new BlockPos(x,level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,x,z)-1,z);
+  int rawHeight=level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,x,z)-1;
+  int capY=ref==null?rawHeight:Math.min(rawHeight,referenceY+20);
+  BlockPos top=new BlockPos(x,capY,z);
+  if(ref!=null)while(top.getY()>referenceY-8&&level.getBlockState(top).isAir())top=top.below();
   for(int lowered=0;lowered<4&&soft(level.getBlockState(top));lowered++)top=top.below();
   BlockPos root=state.containsKey(key+":root")?BlockPos.of(state.get(key+":root")):null;
   int peak=state.containsKey(key+":top")?state.get(key+":top").intValue():top.getY();
+  if(root==null&&ref!=null) {
+   BlockPos[] column=findLogColumn(level,x,z,referenceY);
+   if(column!=null) {
+    root=column[0];top=column[1];peak=top.getY();
+    state.put(key+":root",root.asLong());state.put(key+":top",(long)peak);
+   }
+  }
   if(root==null&&level.getBlockState(top).is(BlockTags.OVERWORLD_NATURAL_LOGS)) {
    root=top;
    while(root.getY()>top.getY()-32&&level.getBlockState(root.below()).is(BlockTags.OVERWORLD_NATURAL_LOGS))root=root.below();
@@ -35,12 +45,14 @@ public final class RoadClearing {
     BlockPos p=new BlockPos(x,y,z);BlockState s=level.getBlockState(p);
     if(s.isAir())continue;
     if(!s.is(BlockTags.OVERWORLD_NATURAL_LOGS)||s.hasBlockEntity()
-     ||s.hasProperty(RotatedPillarBlock.AXIS)&&s.getValue(RotatedPillarBlock.AXIS)!=Direction.Axis.Y)return null;
+     ||(s.hasProperty(RotatedPillarBlock.AXIS)&&s.getValue(RotatedPillarBlock.AXIS)!=Direction.Axis.Y))return null;
     if(pending==null)pending=p;
    }
    if(pending!=null) {
     if(!level.getBlockState(root).is(BlockTags.OVERWORLD_NATURAL_LOGS))return null;
-    BlockPos stand=stand(level,ground);if(stand==null)return null;
+    BlockPos stand=stand(level,ground);
+    if(stand==null)stand=standBesideColumn(level,root,pending);
+    if(stand==null)return null;
     return new Column(ground,new Roads.Repair(pending,Blocks.AIR.defaultBlockState(),stand,false,level.getBlockState(pending),root));
    }
    top=ground;
@@ -79,6 +91,19 @@ public final class RoadClearing {
    if(level.hasChunkAt(p)&&level.getBlockState(p).is(BlockTags.LEAVES)&&soft(level.getBlockState(p)))return true;
   return false;
  }
+ private static BlockPos[] findLogColumn(ServerLevel level,int x,int z,int referenceY) {
+  int minY=Math.max(level.getMinY()+1,referenceY-8),maxY=referenceY+20;
+  for(int y=minY;y<=maxY;y++) {
+   BlockPos seed=new BlockPos(x,y,z);
+   if(!level.getBlockState(seed).is(BlockTags.OVERWORLD_NATURAL_LOGS))continue;
+   BlockPos low=seed,high=seed;
+   while(low.getY()>minY-32&&level.getBlockState(low.below()).is(BlockTags.OVERWORLD_NATURAL_LOGS))low=low.below();
+   while(high.getY()<maxY+32&&level.getBlockState(high.above()).is(BlockTags.OVERWORLD_NATURAL_LOGS))high=high.above();
+   if(high.getY()-low.getY()<2||!soilOrRoad(level.getBlockState(low.below()))||protectedArea(level,low)||!canopy(level,high))continue;
+   return new BlockPos[]{low,high};
+  }
+  return null;
+ }
  private static boolean protectedArea(ServerLevel level,BlockPos root){
   for(BlockPos p:BlockPos.betweenClosed(root.offset(-2,-1,-2),root.offset(2,32,2))) {
    if(!level.hasChunkAt(p))return true;
@@ -94,10 +119,26 @@ public final class RoadClearing {
   }
   return null;
  }
+ /** Feet beside the trunk when corridor turf leaves no air one block above soil. */
+ private static BlockPos standBesideColumn(ServerLevel level,BlockPos root,BlockPos pending){
+  int minY=root.getY(),maxY=pending.getY();
+  for(int r=0;r<=5;r++)for(int dx=-r;dx<=r;dx++)for(int dz=-r;dz<=r;dz++) {
+   if(Math.max(Math.abs(dx),Math.abs(dz))!=r)continue;
+   if(dx==0&&dz==0)continue;
+   for(int y=maxY;y>=minY;y--) {
+    BlockPos p=new BlockPos(root.getX()+dx,y,root.getZ()+dz);
+    if(level.hasChunkAt(p)&&safeStand(level,p))return p;
+   }
+  }
+  return null;
+ }
  private static boolean safeStand(ServerLevel level,BlockPos p){return level.getBlockState(p).isAir()&&level.getBlockState(p.above()).isAir()
   &&level.getBlockState(p.below()).getFluidState().isEmpty()&&level.getBlockState(p.below()).isFaceSturdy(level,p.below(),Direction.UP);}
 
  public static String diagnostic(ServerLevel level,BlockPos root,BlockPos top) {
-  return "soil="+soil(level.getBlockState(root.below()))+",canopy="+canopy(level,top)+",protected="+protectedArea(level,root)+",stand="+stand(level,root.below());
+  BlockPos ground=root.below();
+  BlockPos stand=stand(level,ground);
+  if(stand==null)stand=standBesideColumn(level,root,top);
+  return "soil="+soil(level.getBlockState(ground))+",canopy="+canopy(level,top)+",protected="+protectedArea(level,root)+",stand="+stand;
  }
 }

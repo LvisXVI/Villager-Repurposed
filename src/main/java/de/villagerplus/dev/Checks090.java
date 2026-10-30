@@ -306,7 +306,7 @@ public final class Checks090 {
    source.sendSuccess(()->Component.literal("VP090 roadwork PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("roadclear")) {
-   int count=de.villagerplus.job.RoadClearingChecks.run(level,new BlockPos(15000,201,15000));
+   int count=de.villagerplus.job.RoadClearingChecks.run(level,new BlockPos(16500,201,16500));
    source.sendSuccess(()->Component.literal("VP090 roadclear PASS "+count+" checks"),false);return count;
   }
   if(mode.equals("smithrail")) {
