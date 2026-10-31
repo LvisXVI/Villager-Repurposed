@@ -352,14 +352,18 @@ public final class Builder {
 				PoiManager.Occupancy.ANY);
 			if (d.popAtLastHouse == 0) { d.popAtLastHouse = pop; ref.dirty(); }
 			boolean needHouse = pop < Config.MAX_VILLAGERS && (homeless > 0 || Development.needsHousing(homes, pop));
-			if (Development.needsStorage(box, d, level) && pop >= 4 && storageFree(c, ref)) {
+			String special = nextSpecial(ref, pop);
+			if (Blueprints.GRANARY.equals(special)) {
+				// The first food depot starts even while some generated residents still lack a bed.
+				type = special;
+			} else if (Development.needsStorage(box, d, level) && pop >= 4 && storageFree(c, ref)) {
 				// Dorfkiste ist voll: zuerst ein Lagerschuppen, damit nichts liegen bleibt oder verloren geht.
 				type = Blueprints.STORAGE;
 			} else if (needHouse) {
 				type = Blueprints.HOUSE;
-			} else if (homeless == 0 && nextSpecial(ref, pop) != null) {
+			} else if (homeless == 0 && special != null) {
 				// Pflicht-Meilensteine vor Rathaus/Brunnen: auch groeßere Dörfer holen Kerninfrastruktur nach.
-				type = nextSpecial(ref, pop);
+				type = special;
 			} else if (homeless == 0 && !d.townHallBuilt && pop >= Config.TOWNHALL_POP) {
 				type = Blueprints.TOWNHALL;
 			} else if (!d.wellBuilt && pop >= 3) {
@@ -941,6 +945,15 @@ public final class Builder {
 	}
 
 	/** Bounded perimeter search: the building's anchor height says nothing about the ground outside it. */
+	public static BlockPos constructionStand(Ctx c) {
+		VillageData data = c.village().data();
+		if (!data.hasPlan() || data.planOrigin.isEmpty()) return null;
+		BlockPos origin = data.planOrigin.get();
+		List<Step> steps = STEPS.get(origin.asLong());
+		if (steps == null) return null;
+		return workStand(c, origin, Direction.from2DDataValue(data.planDir), steps);
+	}
+
 	static BlockPos workStand(Ctx c, BlockPos origin, Direction dir, List<Step> steps) {
 		int minX = origin.getX(), maxX = minX, minZ = origin.getZ(), maxZ = minZ, ext = 2;
 		for (Step step : steps) {
@@ -960,17 +973,21 @@ public final class Builder {
 			candidates.add(new BlockPos(minX - 3, origin.getY(), z));
 			candidates.add(new BlockPos(maxX + 3, origin.getY(), z));
 		}
+		BlockPos closest = null;
+		double best = Double.MAX_VALUE;
 		for (BlockPos column : candidates) {
 			if (!c.level().hasChunkAt(column)) continue;
 			BlockPos feet = new BlockPos(column.getX(), c.level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 				column.getX(), column.getZ()), column.getZ());
 			if (feet.getX() >= minX && feet.getX() <= maxX && feet.getZ() >= minZ && feet.getZ() <= maxZ) continue;
 			if (!safeWorkFloor(c.level(), feet)) continue;
-			if (c.v().position().distanceToSqr(net.minecraft.world.phys.Vec3.atBottomCenterOf(feet)) <= 25.0) return feet;
+			double distance = c.v().position().distanceToSqr(net.minecraft.world.phys.Vec3.atBottomCenterOf(feet));
+			if (distance <= 25.0) return feet;
 			var path = workPath(c, feet);
 			if (path != null && path.canReach()) return feet;
+			if (distance < best) { best = distance; closest = feet; }
 		}
-		return null;
+		return closest;
 	}
 
 	/** Independent bounded search, leaving navigation range and node-budget settings untouched. */

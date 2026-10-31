@@ -15,6 +15,7 @@ max-players=1
 online-mode=false
 enable-rcon=false
 pause-when-empty-seconds=-1
+max-tick-time=-1
 EOF
 export VP_AUTOTEST="${VP_AUTOTEST:-ctov}"
 if [ "${VP_AUTOTEST}" = "headless" ]; then

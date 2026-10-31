@@ -2,7 +2,13 @@
 
 **Aktuelle Übergabe, 30.10.2026.** GitHub-Repository: https://github.com/LvisXVI/Villager-Repurposed (privat, Branch `main`). Aktueller Code und die folgenden Nachweise gehen älteren Abschnitten vor.
 
-## Lauf 30.10.2026 – Master-Prompt Phase 2 (Headless 209)
+## Lauf 31.10.2026 – Phase 4 CTOV-Kornspeicher
+
+- Branch `cursor/master-prompt-phase4-ea40`. Fehlender Kornspeicher wird vor neuen Häusern beauftragt. Generierte Bewohner ohne Treffpunkt werden der nächsten Glocke zugeordnet.
+- `VP_AUTOTEST=ctov` auf `vp-ctov-headless`: **39 PASS**, Kornspeicher `-331, 75, -275`.
+- `VP_AUTOTEST=ctov-verify`: **3 PASS** (Attachment, Registrierung, Blöcke nach Neustart).
+- Nächster Schritt: Werkzeugkammer im selben Dorf, danach J01-Feld in CTOV. `./gradlew build` und `VP_AUTOTEST=headless` **220 PASS** nach der Prioritätsänderung.
+
 
 - Neue Headless-Modi: **`milestones`**, **`farmexpand`**, **`railtransport`**, **`railmetro`**, **`caravandelivery`**, **`cookdelight`**, **`compat`** (siehe `AutoTest.HEADLESS`).
 - **`MilestoneWaitingChecks`**, **`FarmerExpansionChecks`** (Teleport-Fix), **`RailMetropolisChecks`**, **`CaravanPorterDeliveryChecks`**, **`CookDelightChecks`**, **`CompatChecks`**; `Roads.reciprocalMetropolis` package-sichtbar, `Roads.advanceMetropolisRailCheck` für Tests.
