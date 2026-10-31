@@ -642,3 +642,9 @@ Karte/Balken/Tabs (Textausgabe), Expeditionen inkl. Verletzte und Beute, Lagersc
 - Audit bleibt **8/62 implemented, 54/62 partial/offen**. Nächster Schritt: frischen CTOV-Hausbau und Karawanenfahrt auf echter fertiger Straße visuell beobachten; der Bürgermeister als Rathausverwalter ist eine zusätzliche Nutzeridee, aber nicht Teil der 62 Master-Prompt-Punkte.
 
 
+## Website-Nachbesserung 31.10.2026 – Portfolio-Bild
+- Screenshot zeigte, dass der breite Karten-Crop den Villager am unteren Rand abschnitt. Für `#project-villagers-repurposed` in `site.css` das 16:10-Seitenverhältnis des Hero-Bilds gesetzt; so bleibt die Figur im Portfolio-Crop sichtbar.
+- Portfolio-Commit `afdbc30` auf `main`; GitHub Pages Lauf `41233599136` erfolgreich. Liveprüfung: Portfolio, Projektseite und Hero-Asset HTTP 200; Portfolio verweist weiterhin auf Projektseite und Bild. „Full release coming soon“ wird auf der Projektseite ausgeliefert.
+- Keine Mod-Builds oder Spieltests ausgeführt. Nächster Schritt: Nutzer kann die Portfolio-Karte neu laden und den Bildausschnitt prüfen.
+
+
