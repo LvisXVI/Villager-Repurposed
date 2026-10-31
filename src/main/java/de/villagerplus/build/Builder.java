@@ -206,6 +206,22 @@ public final class Builder {
 			return false;
 		}
 		VillageData d = ref.data();
+		if (mason && c.v().getY() < ref.bell().getY() - 12) {
+			// A cave bed must not keep the mason underground: pathing from there never reaches a street stand.
+			if (c.mem().homeBed.isPresent() && c.mem().homeBed.get().getY() < ref.bell().getY() - 12) {
+				c.mem().homeBed = Optional.empty();
+			}
+			c.v().getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.HOME);
+			BlockPos feet = villageReturn(c.level(), ref.bell());
+			LOGGER.info("Villagers: Repurposed: Baumeister {} lag unter dem Dorf und wurde nach {} geholt",
+				c.v().blockPosition().toShortString(), feet.toShortString());
+			c.v().teleportTo(feet.getX() + 0.5, feet.getY(), feet.getZ() + 0.5);
+			c.v().resetFallDistance();
+			c.v().getNavigation().stop();
+			c.v().getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
+			c.st().miningUntil = c.now();
+			return true;
+		}
 		if (d.hasPlan()) {
 			if (c.now() - d.planProgress > STUCK_TICKS && d.wanted.isEmpty()) {
 				// Haengender Auftrag (Platz nicht erreichbar, Chunk entladen ...): aufgeben.
@@ -237,7 +253,7 @@ public final class Builder {
 			ref.dirty();
 		}
 		if (c.now() < c.st().buildCheckAt) {
-			return false;
+			return holdForSpecial(c, ref);
 		}
 		c.st().buildCheckAt = c.now() + 600;
 		// Ausbessern hat Vorrang vor Neubauten (sonst kaeme es in einem wachsenden Dorf nie dazu); gepruft wird nur alle 3000 Ticks.
@@ -247,7 +263,12 @@ public final class Builder {
 				return true;
 			}
 		}
-		return startPlan(c, ref, box, mason);
+		return startPlan(c, ref, box, mason) || holdForSpecial(c, ref);
+	}
+
+	/** While a civic milestone is missing, the elected builder does not drop back into mining between plan attempts. */
+	private static boolean holdForSpecial(Ctx c, VillageRef ref) {
+		return nextSpecial(ref, villagers(c.level(), ref).size()) != null;
 	}
 
 	/** Elect one resident as a temporary builder when a small village has no mason yet. */
@@ -296,6 +317,7 @@ public final class Builder {
 			} else {
 				ref.bellEntity().removeAttached(de.villagerplus.VillagerPlus.CONSTRUCTION);
 			}
+			STAND_BEST.remove(d.planOrigin.get().asLong());
 			Map<Long, Integer> dug = PREP_RECORD.remove(d.planOrigin.get().asLong());
 			if (dug != null && d.planStep == 0 && ref.bellEntity().getLevel() instanceof ServerLevel sl) {
 				// Bau kam nicht ueber die Vorbereitung hinaus: Gelaende wieder herrichten (keine verlassenen Gruben).
@@ -568,12 +590,43 @@ public final class Builder {
 		}
 
 		// Re-read current persisted zones before publishing the plan, including roof overhang, courtyard decoration and setup space.
-		if (!ZoneAwareSites.allowsPlan(ref, type, steps)) return false;
-		if (architect(type) && source == null && steps != null) {
+		// A plot is committed only when workStand can already reach it; otherwise the same pit is chosen again for the whole budget.
+		for (int plotTry = 0; plotTry < 8; plotTry++) {
+			if (site == null || steps == null || dir == null) {
+				c.st().buildCheckAt = c.now() + 40;
+				return false;
+			}
+			if (!ZoneAwareSites.allowsPlan(ref, type, steps)) {
+				rejectPlot(ref, site);
+				LOGGER.info("Villagers: Repurposed: Bauplatz {} verworfen (Zone)", site.toShortString());
+			} else {
+				if (architect(type) && source == null) {
+					Palette palette = PALETTES.get(site.asLong());
+					Architect.Design design = Architect.design(kindOf(type), variant >>> 2);
+					steps = ConstructionSite.order(steps, site, design, palette);
+					constructionPhaseEnds = ConstructionSite.phaseEnds(steps, site, design, palette);
+				}
+				if (type.equals(Blueprints.FARM) || reachablePlot(c, ref, site, dir, steps)) {
+					break;
+				}
+				rejectPlot(ref, site);
+				LOGGER.info("Villagers: Repurposed: Bauplatz {} verworfen (kein erreichbarer Stand) {}", site.toShortString(), lastStandReport);
+			}
+			if (plotTry == 7 || source != null) {
+				c.st().buildCheckAt = c.now() + 40;
+				return false;
+			}
+			site = anotherPlot(c, ref, type, variant, style);
+			if (site == null) {
+				c.st().buildCheckAt = c.now() + 40;
+				return false;
+			}
+			dir = Sites.facingTowards(site, ref.bell());
+			steps = freshSteps(c, ref, type, variant, style, site, dir);
 			Palette palette = PALETTES.get(site.asLong());
-			Architect.Design design = Architect.design(kindOf(type), variant >>> 2);
-			steps = ConstructionSite.order(steps, site, design, palette);
-			constructionPhaseEnds = ConstructionSite.phaseEnds(steps, site, design, palette);
+			constructionPaletteIds = palette == null ? List.of() : palette.ids();
+			constructionPhaseEnds = List.of();
+			continue;
 		}
 		if (!type.equals(Blueprints.FARM)) {
 			// Der Auftrag wird sofort festgelegt (ein Haus, ein Platz); fehlendes Material wird waehrenddessen beschafft.
@@ -608,6 +661,59 @@ public final class Builder {
 			return Landmarks.build(type, variant >>> 2, palette, site, facing);
 		}
 		return Blueprints.create(type, style, site, facing, variant);
+	}
+
+	/** Same footprint the committed plan will use, so the reach test matches the later work stand. */
+	private static List<Step> freshSteps(Ctx c, VillageRef ref, String type, int variant, VillageStyle style, BlockPos site, Direction dir) {
+		Architect.Design design = architect(type) ? Architect.design(kindOf(type), variant >>> 2) : null;
+		if (design != null) {
+			Palette palette = Palette.detect(c.level(), ref.bell(), c.v(), variant >>> 2, site);
+			PALETTES.put(site.asLong(), palette);
+			return Architect.build(design, palette, site, dir);
+		}
+		if (Landmarks.handles(type)) {
+			Palette palette = Palette.detect(c.level(), ref.bell(), c.v(), variant >>> 2, site);
+			PALETTES.put(site.asLong(), palette);
+			return Landmarks.build(type, variant >>> 2, palette, site, dir);
+		}
+		return Blueprints.create(type, style, site, dir, variant);
+	}
+
+	/** Another loaded plot for this design, skipping stands the builder has already rejected. */
+	private static BlockPos anotherPlot(Ctx c, VillageRef ref, String type, int variant, VillageStyle style) {
+		if (templated(type)) return null;
+		ServerLevel level = c.level();
+		Architect.Design design = architect(type) ? Architect.design(kindOf(type), variant >>> 2) : null;
+		int half = design != null ? design.half() : Landmarks.handles(type) ? Landmarks.half(type) : Blueprints.half(type);
+		int headroom = design != null ? design.headroom() : Landmarks.handles(type) ? Landmarks.headroom(type) : Blueprints.headroom(type);
+		int min = type.equals(Blueprints.WELL) || type.equals(Blueprints.DECOR) ? 5 : type.equals(Blueprints.TOWNHALL) ? 7
+			: type.equals(Blueprints.STORAGE) || type.equals(Blueprints.SCHOOL) || Blueprints.special(type) ? 6 : 10;
+		int max = type.equals(Blueprints.WELL) ? 14 : type.equals(Blueprints.DECOR) ? 16 : type.equals(Blueprints.TOWNHALL) ? 22
+			: type.equals(Blueprints.STORAGE) || type.equals(Blueprints.SCHOOL) || Blueprints.special(type) ? 72 : 36;
+		java.util.function.Predicate<BlockPos> fits = p -> !rejectedPlot(ref, p) && ZoneAwareSites.allowsPlan(ref, type,
+			sitingSteps(c, ref, type, variant, design, style, p));
+		Sites.margin = 2;
+		int searchMax = Math.min(Config.VILLAGE_RADIUS - 8, max);
+		BlockPos site = ZoneAwareSites.find(level, ref, type, c.v().getRandom(), min, searchMax, half, headroom, 24, fits);
+		if (site == null) {
+			site = ZoneAwareSites.findTolerant(level, ref, type, c.v().getRandom(), min, searchMax, -half, half, -half, half, headroom + 1, 48, fits);
+		}
+		if (site == null && architect(type)) {
+			int systematicMax = Config.VILLAGE_RADIUS - 8;
+			site = ZoneAwareSites.findSystematic(level, ref, type, c.v().getRandom(), min, systematicMax, -half, half, -half, half, headroom, fits);
+			if (site == null) {
+				site = ZoneAwareSites.findTolerantSystematic(level, ref, type, c.v().getRandom(), min, systematicMax,
+					-half, half, -half, half, headroom + 1, fits);
+			}
+		}
+		Sites.margin = 3;
+		return site;
+	}
+
+	/** The path check continuePlan will use, applied before the plan is stored. */
+	private static boolean reachablePlot(Ctx c, VillageRef ref, BlockPos site, Direction dir, List<Step> steps) {
+		BlockPos stand = workStand(c, site, dir, steps);
+		return stand != null && stand.getY() >= ref.bell().getY() - 12;
 	}
 
 	/**
@@ -808,10 +914,12 @@ public final class Builder {
 				c.v().getNavigation().stop();
 				c.v().getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
 				c.st().cooldownUntil = c.now() + 40;
-				if (c.v().blockPosition().distSqr(origin) > 24 * 24) {
+				// Far from the plot there is nothing to wait for. Close by, give the chunk a short chance, then drop the plot.
+				if (c.v().blockPosition().distSqr(origin) > 24 * 24 || (d.planStep == 0 && c.now() - d.planProgress > STAND_GIVE_UP)) {
+					why = "kein Weg zum Bauplatz";
+					LOGGER.info("Villagers: Repurposed: Bau '{}' Schritt {} wird abgebrochen ({})", d.planType, d.planStep, why);
 					rejectPlot(ref, origin);
 					abort(d, ref, c.now());
-					why = "kein Weg zum Bauplatz";
 					return false;
 				}
 				return true;
@@ -822,16 +930,23 @@ public final class Builder {
 				BlockPos waypoint = routeWaypoint(c, stand);
 				c.v().getBrain().setMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET,
 					new net.minecraft.world.entity.ai.memory.WalkTarget(waypoint, (float) Math.min(0.55, 0.45 * de.villagerplus.job.Skills.speed(c.mem())), 1));
-				if (c.st().lastMoveAt == c.now()) d.planProgress = c.now();
-				else if (d.planStep == 0 && c.now() - d.planProgress > 2000) {
+				// lastMoveAt is also refreshed by the stuck detector, so it cannot prove the mason is closing on the stand.
+				double dist = c.v().position().distanceTo(net.minecraft.world.phys.Vec3.atBottomCenterOf(stand));
+				Double best = STAND_BEST.get(origin.asLong());
+				if (best == null || dist < best - 1.5) {
+					STAND_BEST.put(origin.asLong(), dist);
+					d.planProgress = c.now();
+				} else if (d.planStep == 0 && c.now() - d.planProgress > STAND_GIVE_UP) {
+					why = "Bauplatz nicht erreicht";
+					LOGGER.info("Villagers: Repurposed: Bau '{}' Schritt {} wird abgebrochen ({}) Stand {}", d.planType, d.planStep, why, stand.toShortString());
 					rejectPlot(ref, origin);
 					abort(d, ref, c.now());
-					why = "Bauplatz nicht erreicht";
 					return false;
 				}
 				why = "geht zur Baustelle " + stand.toShortString() + " von " + c.v().blockPosition().toShortString();
 				return true;
 			}
+			STAND_BEST.remove(origin.asLong());
 			if (insideFootprint(c, steps)) {
 				c.v().teleportTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
 			}
@@ -973,6 +1088,25 @@ public final class Builder {
 	}
 
 	private static final java.util.Map<Long, java.util.Set<Long>> REJECTED_PLOTS = new java.util.HashMap<>();
+	/** Closest distance to the current stand since the mason last made real progress. Not persisted. */
+	private static final java.util.Map<Long, Double> STAND_BEST = new java.util.HashMap<>();
+	/** Step 0 gives up well before the 20000-tick walk budget when the stand is not getting closer. */
+	private static final long STAND_GIVE_UP = 1200L;
+	private record SavedBlock(BlockPos pos, BlockState state) { }
+
+	/** A street-level spot beside the bell, not the tower roof and not a cave under it. */
+	private static BlockPos villageReturn(ServerLevel level, BlockPos bell) {
+		BlockPos best = null;
+		for (int dx = -4; dx <= 4; dx++) {
+			for (int dz = -4; dz <= 4; dz++) {
+				if (dx == 0 && dz == 0) continue;
+				BlockPos feet = standOnColumn(level, bell.getX() + dx, bell.getZ() + dz, bell.getY());
+				if (feet == null || !safeWorkFloor(level, feet) || Math.abs(feet.getY() - bell.getY()) > 12) continue;
+				if (best == null || Math.abs(feet.getY() - bell.getY()) < Math.abs(best.getY() - bell.getY())) best = feet;
+			}
+		}
+		return best != null ? best : bell.above();
+	}
 
 	/** Remember a plot the builder could not reach so the next search chooses somewhere else. */
 	static void rejectPlot(VillageRef ref, BlockPos plot) {
@@ -986,6 +1120,9 @@ public final class Builder {
 		java.util.Set<Long> plots = ref == null ? null : REJECTED_PLOTS.get(ref.bell().asLong());
 		return plots != null && plots.contains(BlockPos.asLong(plot.getX(), 0, plot.getZ()));
 	}
+
+	/** Why the latest workStand call found nothing. Diagnostic only. */
+	private static String lastStandReport = "";
 
 	static BlockPos workStand(Ctx c, BlockPos origin, Direction dir, List<Step> steps) {
 		int minX = origin.getX(), maxX = minX, minZ = origin.getZ(), maxZ = minZ, ext = 2;
@@ -1012,38 +1149,107 @@ public final class Builder {
 			candidates.add(new BlockPos(minX - gap, origin.getY(), midZ));
 			candidates.add(new BlockPos(maxX + gap, origin.getY(), midZ));
 		}
+		// Corners stay inside the eight-block ring. A wider ring would walk off the wet-perimeter fixture.
+		for (int gap : new int[] {4, 6, 8}) {
+			candidates.add(new BlockPos(minX - gap, origin.getY(), minZ - gap));
+			candidates.add(new BlockPos(maxX + gap, origin.getY(), minZ - gap));
+			candidates.add(new BlockPos(minX - gap, origin.getY(), maxZ + gap));
+			candidates.add(new BlockPos(maxX + gap, origin.getY(), maxZ + gap));
+		}
 		List<BlockPos> floors = new ArrayList<>();
+		BlockPos frontFeet = null;
+		boolean frontColumn = true;
 		for (BlockPos column : candidates) {
-			if (!c.level().hasChunkAt(column)) continue;
+			if (!c.level().hasChunkAt(column)) {
+				frontColumn = false;
+				continue;
+			}
 			BlockPos feet = standOnColumn(c.level(), column.getX(), column.getZ(), origin.getY());
+			if (frontColumn) {
+				frontFeet = feet;
+				frontColumn = false;
+			}
 			if (feet == null) continue;
 			if (feet.getX() >= minX && feet.getX() <= maxX && feet.getZ() >= minZ && feet.getZ() <= maxZ) continue;
 			floors.add(feet);
 		}
-		if (floors.isEmpty()) return null;
-		int[] heights = floors.stream().mapToInt(BlockPos::getY).sorted().toArray();
-		int median = heights[heights.length / 2];
-		floors.removeIf(feet -> median - feet.getY() > 4);
-		for (BlockPos feet : floors) {
-			double distance = c.v().position().distanceToSqr(net.minecraft.world.phys.Vec3.atBottomCenterOf(feet));
-			if (distance <= 36.0) return feet;
-			var path = workPath(c, feet);
-			if (path != null && path.canReach()) return feet;
+		if (floors.isEmpty()) {
+			lastStandReport = "worker=" + c.v().blockPosition().toShortString() + " floors=0";
+			return null;
 		}
+		// Drop pit columns only. A ring median (or the lowest height cluster) treats nearby roof
+		// samples as the reference and throws away the real street beside them.
+		int streetLevel = origin.getY();
+		if (!floors.isEmpty()) {
+			java.util.Map<Integer, Integer> heightVotes = new java.util.HashMap<>();
+			for (BlockPos feet : floors) heightVotes.merge(feet.getY(), 1, Integer::sum);
+			streetLevel = heightVotes.entrySet().stream()
+				.max(Comparator.<java.util.Map.Entry<Integer, Integer>>comparingInt(java.util.Map.Entry::getValue)
+					.thenComparingInt(e -> -Math.abs(e.getKey() - origin.getY())))
+				.map(java.util.Map.Entry::getKey).orElse(origin.getY());
+		}
+		final int pitReference = streetLevel;
+		floors.removeIf(feet -> pitReference - feet.getY() > 4);
+		touchCorridor(c.level(), c.v().blockPosition(), origin);
+		if (frontFeet != null && floors.contains(frontFeet) && acceptStand(c, frontFeet)) return frontFeet;
+		floors.remove(frontFeet);
+		floors.sort(Comparator.comparingDouble(feet -> c.v().position().distanceToSqr(net.minecraft.world.phys.Vec3.atBottomCenterOf(feet))));
+		StringBuilder report = new StringBuilder();
+		report.append("worker=").append(c.v().blockPosition().toShortString()).append(" floors=").append(floors.size());
+		int tried = 0;
+		for (BlockPos feet : floors) {
+			if (acceptStand(c, feet)) {
+				lastStandReport = report.toString();
+				return feet;
+			}
+			if (tried++ < 3) report.append(" miss=").append(feet.toShortString());
+		}
+		lastStandReport = report.toString();
 		return null;
 	}
 
-	/** Ground the worker can stand on: the heightmap, or the street under a roof when the roof is above the build level. */
+	/** Keep a cleared stand when the mason can use it; put leaves and the one-block lip back when the path fails. */
+	private static boolean acceptStand(Ctx c, BlockPos feet) {
+		List<SavedBlock> cleared = exposeStand(c.level(), feet);
+		double distance = c.v().position().distanceToSqr(net.minecraft.world.phys.Vec3.atBottomCenterOf(feet));
+		if (distance <= 36.0) return true;
+		var path = workPath(c, feet);
+		if (path != null && path.canReach()) return true;
+		restoreStand(c.level(), cleared);
+		return false;
+	}
+
+	/** Ground the worker can stand on: the heightmap, a one-block step, or the street under a roof. */
 	static BlockPos standOnColumn(ServerLevel level, int x, int z, int preferY) {
 		if (!level.hasChunkAt(new BlockPos(x, preferY, z))) return null;
 		int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
 		BlockPos surface = new BlockPos(x, top, z);
-		if (!safeWorkFloor(level, surface)) return null;
-		if (surface.getY() > preferY + 2) {
-			BlockPos lower = shelteredFloor(level, surface, preferY);
+		BlockPos chosen = null;
+		for (int dy : new int[] {0, -1, 1}) {
+			BlockPos feet = surface.offset(0, dy, 0);
+			if (standable(level, feet)) {
+				chosen = feet;
+				break;
+			}
+		}
+		if (chosen == null) return null;
+		if (chosen.getY() > preferY + 2) {
+			BlockPos lower = shelteredFloor(level, chosen, preferY);
 			if (lower != null) return lower;
 		}
-		return surface;
+		return chosen;
+	}
+
+	/** Load the chunks between the mason and the plot so the path test sees the streets, not empty columns. */
+	private static void touchCorridor(ServerLevel level, BlockPos from, BlockPos to) {
+		int minX = (Math.min(from.getX(), to.getX()) >> 4) - 1;
+		int maxX = (Math.max(from.getX(), to.getX()) >> 4) + 1;
+		int minZ = (Math.min(from.getZ(), to.getZ()) >> 4) - 1;
+		int maxZ = (Math.max(from.getZ(), to.getZ()) >> 4) + 1;
+		if ((maxX - minX + 1L) * (maxZ - minZ + 1L) > 80) return;
+		for (int x = minX; x <= maxX; x++) {
+			for (int z = minZ; z <= maxZ; z++) level.getChunk(x, z);
+		}
 	}
 
 	/** A 2-block gap under a roof, so the stand is the street rather than the roof ridge. */
@@ -1051,10 +1257,75 @@ public final class Builder {
 		int solids = 0;
 		for (int y = roofFeet.getY() - 1; y >= Math.max(preferY - 2, roofFeet.getY() - 8); y--) {
 			BlockPos feet = new BlockPos(roofFeet.getX(), y, roofFeet.getZ());
-			if (safeWorkFloor(level, feet)) return feet;
-			if (!level.getBlockState(feet).getCollisionShape(level, feet).isEmpty() && ++solids > 2) return null;
+			if (standable(level, feet)) return feet;
+			if (!level.getBlockState(feet).getCollisionShape(level, feet).isEmpty() && !isSoft(level.getBlockState(feet)) && ++solids > 2) return null;
 		}
 		return null;
+	}
+
+	/** Leaves and replaceable plants, plus a single dirt lip a mason would shovel aside. Fluids stay. */
+	private static boolean standable(ServerLevel level, BlockPos feet) {
+		if (!level.hasChunkAt(feet) || !level.hasChunkAt(feet.below()) || !level.hasChunkAt(feet.above())) return false;
+		BlockPos below = feet.below();
+		BlockState ground = level.getBlockState(below);
+		if (!ground.isFaceSturdy(level, below, Direction.UP) || !ground.getFluidState().isEmpty()) return false;
+		boolean digFeet = needsDig(level, feet);
+		boolean digHead = needsDig(level, feet.above());
+		if (digFeet && digHead) return false;
+		if (!digFeet && !opens(level, feet)) return false;
+		if (!digHead && !opens(level, feet.above())) return false;
+		if (digFeet && !opens(level, feet.above())) return false;
+		if (digHead && !opens(level, feet)) return false;
+		return true;
+	}
+
+	private static boolean opens(ServerLevel level, BlockPos pos) {
+		BlockState state = level.getBlockState(pos);
+		if (!state.getFluidState().isEmpty()) return false;
+		if (state.isAir() || isSoft(state)) return true;
+		return state.getCollisionShape(level, pos).isEmpty();
+	}
+
+	private static boolean needsDig(ServerLevel level, BlockPos pos) {
+		BlockState state = level.getBlockState(pos);
+		return isDiggableStep(state) && !state.getCollisionShape(level, pos).isEmpty()
+			&& opens(level, pos.above());
+	}
+
+	private static boolean isSoft(BlockState state) {
+		if (state.isAir() || !state.getFluidState().isEmpty()) return false;
+		return state.is(BlockTags.LEAVES) || state.canBeReplaced();
+	}
+
+	private static boolean isDiggableStep(BlockState state) {
+		return state.is(BlockTags.DIRT) || state.is(Blocks.SAND) || state.is(Blocks.RED_SAND) || state.is(Blocks.GRAVEL);
+	}
+
+	/** Clear foliage and at most one natural lip so the path test sees the floor the mason will actually use. */
+	private static List<SavedBlock> exposeStand(ServerLevel level, BlockPos feet) {
+		List<SavedBlock> saved = new ArrayList<>();
+		for (BlockPos pos : List.of(feet, feet.above(), feet.above(2))) {
+			BlockState state = level.getBlockState(pos);
+			if (!isSoft(state)) continue;
+			saved.add(new SavedBlock(pos, state));
+			level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+		}
+		BlockPos head = feet.above();
+		if (needsDig(level, head) && !needsDig(level, feet)) {
+			saved.add(new SavedBlock(head, level.getBlockState(head)));
+			level.setBlock(head, Blocks.AIR.defaultBlockState(), 3);
+		} else if (needsDig(level, feet) && !needsDig(level, head)) {
+			saved.add(new SavedBlock(feet, level.getBlockState(feet)));
+			level.setBlock(feet, Blocks.AIR.defaultBlockState(), 3);
+		}
+		return saved;
+	}
+
+	private static void restoreStand(ServerLevel level, List<SavedBlock> saved) {
+		for (int i = saved.size() - 1; i >= 0; i--) {
+			SavedBlock block = saved.get(i);
+			level.setBlock(block.pos(), block.state(), 3);
+		}
 	}
 
 	/** Next node on a verified route, about eight blocks ahead, so vanilla navigation can recompute it. */
@@ -1074,8 +1345,10 @@ public final class Builder {
 	public static net.minecraft.world.level.pathfinder.Path workPath(Ctx c, BlockPos feet) {
 		double distance = c.v().position().distanceTo(net.minecraft.world.phys.Vec3.atBottomCenterOf(feet));
 		if (distance > 192.0) return null;
-		int length = Math.min(256, Math.max(32, (int)Math.ceil(distance) + 32));
 		BlockPos from = c.v().blockPosition();
+		int horizontal = Math.abs(from.getX() - feet.getX()) + Math.abs(from.getZ() - feet.getZ());
+		// Straight-line distance understates CTOV streets; budget the walked perimeter, not the chord.
+		int length = (int) Math.min(512, Math.max(96, horizontal + Math.max(48, (int) Math.ceil(distance))));
 		var region = new net.minecraft.world.level.PathNavigationRegion(c.level(),
 			from.offset(-length - 8, -length - 8, -length - 8), from.offset(length + 8, length + 8, length + 8));
 		var finder = new net.minecraft.world.level.pathfinder.PathFinder(c.v().getNavigation().getNodeEvaluator(), length * 32);
@@ -1147,6 +1420,7 @@ public final class Builder {
 			else ref.bellEntity().setAttached(de.villagerplus.VillagerPlus.CONSTRUCTION, remaining);
 		}
 		PREP_RECORD.remove(origin.asLong());
+		STAND_BEST.remove(origin.asLong());
 		PLAN_DIAGNOSTICS.remove(origin.asLong());
 		if (REPAIRS.remove(origin.asLong())) {
 			JobUtil.tellNearbyPlayers(c.level(), c.v(), 40, Component.literal("Ausgebessert: " + label(d.planType) + "."));
