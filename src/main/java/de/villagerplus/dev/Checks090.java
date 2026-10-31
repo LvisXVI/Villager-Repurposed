@@ -329,7 +329,8 @@ public final class Checks090 {
   }
   if(mode.equals("ctov")) {
    var natural=CtovHeadlessChecks.bootstrap(level);
-   int count=CtovMilestoneChecks.run(level,natural);
+   int count=CtovMilestoneChecks.runHarness(level,natural);
+   count+=CtovMilestoneChecks.runWalk(level,natural);
    count+=CtovHeadlessChecks.run(level,natural);
    count+=CompatChecks.runStrict(level);
    count+=de.villagerplus.job.CookDelightChecks.run(level,natural.bell().offset(200,0,200));
