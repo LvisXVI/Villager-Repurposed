@@ -4,7 +4,7 @@ Stand: 30.10.2026. Diese vollständige Feature-Liste bildet alle **62 Anforderun
 
 **Status:** `implemented` = Kernanforderung umgesetzt; `partial` = ein wesentlicher Teil umgesetzt, aber ausdrückliche Anforderungen sind noch offen; `missing` = keine Implementierung gefunden; `unverified` = der Quellcode scheint die Anforderung abzudecken, aber es fehlt ein hinreichend gezielter Testnachweis.
 
-**Phase 3 (Branch `cursor/master-prompt-phase3-ea40`, 30.10.2026):** Modpack-Abhängigkeiten in Gradle/Loom (`docs/modpack-dev-dependencies.md`), CTOV **Vb09nbge** = MC **26.2** Fabric bestätigt (Modrinth). Karawanen-Porter **K04** headless **6 PASS** (`caravandelivery`). Rail-Produktionsfixes siehe `docs/phase3-rail-open-item.md`; **`railmetro` 12/13** (2/3 Segmente, Check unverändert). Vollpack-Headless **`VP_AUTOTEST=headless`** noch nicht grün (POI/Compat); CTOV-Weltscript `scripts/run-ctov-headless.sh` – E2E CTOV+Verify ausstehend. **Kein Merge** bis Build + alle Headless-Suites grün.
+**Phase 3 (31.10.2026, grün):** `VP_AUTOTEST=headless` **220 PASS**. `VP_AUTOTEST=ctov` **37 PASS** in `vp-ctov-headless` (Glocke `-312, 81, -330`, 14 Bewohner, CTOV-Struktur). `VP_AUTOTEST=ctov-verify` nach Neustart **PASS**. `railmetro` 13 und `caravandelivery` 6 unverändert streng. Build JDK 25 grün.
 
 **Lauf 30.10.2026 (Branch `cursor/master-prompt-phase2-ea40`):** Headless-Erweiterung für Meilenstein-Warteschleife (G02), Farmer-Feldexpansion (J01), Bahn-Metropole/Ledger (G08/D06–D07), Karawanen-Depot-Routing (K04), Koch/Ofen (J02) und Integrations-Scan (`CompatChecks`). Natürlicher CTOV-Endlauf und Vollpack bleiben offen.
 

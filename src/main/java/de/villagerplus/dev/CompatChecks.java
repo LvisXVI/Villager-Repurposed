@@ -11,7 +11,7 @@ public final class CompatChecks {
 	private CompatChecks() { }
 
 	private static final String[] OPTIONAL_MODS = {
-		"farmersdelight", "chefsdelight", "morevillagers", "sereneseasons", "towns_and_towers", "village_taverns", "ctov"
+		"farmersdelight", "chefsdelight", "morevillagers", "sereneseasons", "t_and_t", "village_taverns", "ctov"
 	};
 
 	private static final String[] OPTIONAL_BLOCKS = {
@@ -55,6 +55,7 @@ public final class CompatChecks {
 	}
 
 	private static boolean modPresent(String mod) {
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(mod)) return true;
 		return BuiltInRegistries.ITEM.keySet().stream().anyMatch(id -> id.getNamespace().equals(mod))
 			|| BuiltInRegistries.BLOCK.keySet().stream().anyMatch(id -> id.getNamespace().equals(mod));
 	}

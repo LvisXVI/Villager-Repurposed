@@ -36,7 +36,9 @@ public final class CookDelightChecks {
 		else level.setBlock(kitchen, Blocks.FURNACE.defaultBlockState(), 3);
 		if (boardBlock != null) level.setBlock(kitchen.north(), boardBlock.defaultBlockState(), 3);
 		Specials.set(ref, Blueprints.GRANARY, granary);
+		level.setBlock(granary, Blocks.CHEST.defaultBlockState(), 3);
 		Container pantry = (Container) level.getBlockEntity(granary);
+		if (pantry == null) throw new IllegalStateException("granary chest did not create a container");
 		pantry.clearContent();
 		pantry.setItem(0, new ItemStack(Items.WHEAT, 9));
 		var cook = EntityTypes.VILLAGER.spawn(level, granary.south(2), EntitySpawnReason.COMMAND);

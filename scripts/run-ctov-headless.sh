@@ -17,4 +17,8 @@ enable-rcon=false
 pause-when-empty-seconds=-1
 EOF
 export VP_AUTOTEST="${VP_AUTOTEST:-ctov}"
+if [ "${VP_AUTOTEST}" = "headless" ]; then
+	echo "run-ctov-headless.sh forces VP_AUTOTEST=ctov (got headless from the environment)" >&2
+	export VP_AUTOTEST=ctov
+fi
 ./gradlew runServer --no-daemon "$@"

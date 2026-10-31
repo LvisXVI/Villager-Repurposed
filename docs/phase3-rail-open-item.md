@@ -1,22 +1,20 @@
-# Phase 3 – Rail E2E (offen)
+# Phase 3 – Rail E2E und CTOV
 
-Stand: 30.10.2026, Branch `cursor/master-prompt-phase3-ea40`.
+Stand: 31.10.2026, Branch `cursor/master-prompt-phase3-ea40`.
 
-## Produktionsfixes (umgesetzt)
+## Produktionsfixes
 
-- **`RoadRoute.ensure`**: Wenn A*-Planung scheitert, Fallback auf Manhattan-Legacy statt dauerhaft leerer Geometrie.
-- **`RoadRoute.ensureWithRetry`**: Bei aktivem `routeRetryAt` weiterhin Legacy-/gespeicherte Geometrie zulassen (kein stilles Blockieren von `advanceRail`).
-- **`Roads.findRailSite`**: Vertikale Suche mit **Glocken-/Plattform-Y** zusätzlich zur Heightmap (erhöhte Dorfplattformen).
-- **`Roads.findStationRailStart`**: Befestigung über `RailSite`-Footing statt falscher Heightmap-Oberfläche (Gras/Glocke über Kies).
-- **`Roads.isProtectedLaneCell`**: Kisten/Fässer nicht überpflastern (`repairable` + E2E-Korridor).
-- **`RailResources.hasMetallurgyStock`**: Erfordert jetzt auch **8× Schiene** im Dorfvorrat (konsistent zu `canPay`).
+- `RoadRoute`: Manhattan-Fallback, wenn A* scheitert; `ensureWithRetry` blockiert nicht mehr auf einem abgelaufenen Retry.
+- `Roads.findRailSite` / Bahnhofszugang: Plattform-Y plus Heightmap; Kies-Footing statt Grasoberfläche.
+- `Roads.isProtectedLaneCell`: Dorfkisten werden nicht überpflastert.
+- `RailResources.hasMetallurgyStock` verlangt Schienen, damit `railReady` und `canPay` zusammenpassen.
+- Bewohnerzählung über geladene Entitäten und Treffpunkt an der eigenen Glocke.
 
-## Headless `VP_AUTOTEST=railmetro`
+## Nachweise
 
-Letzter Lauf: **12/13 Checks** – Metropolen-Cursor > 0, **2/3** verbundene Segmente auf dem Korridor (Schwelle ≥ 3 unverändert).
+- `./gradlew build` JDK 25 grün.
+- `VP_AUTOTEST=headless`: **220 PASS** (einschließlich `railmetro` 13 und `caravandelivery` 6).
+- `VP_AUTOTEST=ctov` auf Welt `vp-ctov-headless`: **37 PASS**, natürliche CTOV-Glocke `-312, 81, -330`, 14 Dorfbewohner.
+- Neustart `VP_AUTOTEST=ctov-verify`: Dorf-Attachment `planType=ctov-headless` überlebt.
 
-Vermutung: drittes Segment bricht an `advanceRail` (Join/`canPay`/lokales Gleisbett) ab; **kein Test-Abschwächung**.
-
-## Nächster Schritt
-
-`advanceRail`-Abbruch an Cursor > `stationStart` mit vollem Log/Assertion in Dev; ggf. StationShed-Kollision getrennt testen (G08), nicht in derselben E2E-Schleife vermischen.
+Bahnhof im Rail-E2E steht neben der Mittelachse, damit die Bahnhofskiste nicht das Gleisbett ist. Die Schwelle „mindestens drei verbundene Segmente“ ist unverändert.

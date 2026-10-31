@@ -46,6 +46,10 @@ public final class RailEndToEndChecks {
 		int checks = 0;
 		try {
 			linkMetropolis(level, ref, peer);
+			clearBoundResidents(level, ref);
+			clearBoundResidents(level, peer);
+			forceSettlement(level, ref.bell());
+			forceSettlement(level, peer.bell());
 			List<Villager> peerResidents = spawnResidents(level, peer, fixtures);
 			Villages.resetAssignmentCache();
 			List<Villager> homeResidents = spawnResidents(level, ref, fixtures);
@@ -62,6 +66,8 @@ public final class RailEndToEndChecks {
 			for (Villager v : homeResidents) level.getChunkAt(v.blockPosition());
 			for (Villager v : peerResidents) level.getChunkAt(v.blockPosition());
 			level.tick(() -> false);
+			retainResidents(level, homeResidents);
+			retainResidents(level, peerResidents);
 			check(homeResidents.stream().filter(v -> v.getBrain().getMemory(MemoryModuleType.MEETING_POINT)
 				.filter(g -> g.pos().equals(ref.bell())).isPresent()).count() == Roads.RAIL_POP,
 				"home fixtures remember the village bell meeting point"); checks++;
@@ -69,7 +75,7 @@ public final class RailEndToEndChecks {
 				"resident census counts every bound home villager (" + Roads.RAIL_POP + ")"); checks++;
 			int peerCensus = Villages.residents(level, peer, de.villagerplus.Config.VILLAGE_RADIUS, v -> true).size();
 			check(peerCensus == Roads.RAIL_POP,
-				"peer census counts every bound peer villager (" + Roads.RAIL_POP + ")"); checks++;
+				"peer census counts every bound peer villager (" + peerCensus + "/" + Roads.RAIL_POP + ")"); checks++;
 			DepotLayout home = layoutDepots(level, ref, homeBox);
 			DepotLayout peerLayout = layoutDepots(level, peer, peerBox);
 			stockMetallurgy(homeBox);
@@ -158,15 +164,59 @@ public final class RailEndToEndChecks {
 		Network.save(peer.bellEntity(), Network.of(peer.bellEntity()).withCooldown(approval, 1L));
 	}
 
+	private static void retainResidents(ServerLevel level, List<Villager> residents) {
+		for (Villager villager : residents) {
+			if (!villager.isAlive() || villager.isRemoved()) {
+				throw new IllegalStateException("resident fixture dropped before census at " + villager.blockPosition().toShortString());
+			}
+			if (level.getEntity(villager.getUUID()) != villager) {
+				level.getChunkAt(villager.blockPosition());
+				if (!level.addFreshEntity(villager)) {
+					throw new IllegalStateException("resident fixture left the level before census at " + villager.blockPosition().toShortString());
+				}
+			}
+		}
+	}
+
+	private static void forceSettlement(ServerLevel level, BlockPos bell) {
+		int cx = bell.getX() >> 4;
+		int cz = bell.getZ() >> 4;
+		for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) {
+			level.setChunkForced(cx + dx, cz + dz, true);
+			level.getChunk(cx + dx, cz + dz);
+		}
+	}
+
+	private static void clearBoundResidents(ServerLevel level, VillageRef ref) {
+		java.util.List<Villager> stale = new java.util.ArrayList<>();
+		for (net.minecraft.world.entity.Entity entity : level.getAllEntities()) {
+			if (!(entity instanceof Villager villager) || !villager.isAlive()) continue;
+			var meeting = villager.getBrain().getMemory(MemoryModuleType.MEETING_POINT);
+			boolean bound = meeting.isPresent() && meeting.get().pos().equals(ref.bell());
+			boolean nearby = villager.blockPosition().distSqr(ref.bell()) <= (long) de.villagerplus.Config.VILLAGE_RADIUS * de.villagerplus.Config.VILLAGE_RADIUS;
+			if (bound || nearby) stale.add(villager);
+		}
+		for (Villager villager : stale) {
+			villager.discard();
+			Villages.forget(villager.getUUID());
+		}
+	}
+
 	private static List<Villager> spawnResidents(ServerLevel level, VillageRef ref, List<Villager> fixtures) {
 		List<Villager> out = new ArrayList<>();
 		for (int i = 0; i < Roads.RAIL_POP; i++) {
-			BlockPos spawn = ref.bell().offset(2 + i, 0, 3 + (i % 3));
+			int chunkX = ref.bell().getX() >> 4;
+			int chunkZ = ref.bell().getZ() >> 4;
+			BlockPos spawn = new BlockPos((chunkX << 4) + 2 + (i % 4), ref.bell().getY(), (chunkZ << 4) + 2 + (i / 4));
 			level.getChunkAt(spawn);
 			level.setBlock(spawn, Blocks.AIR.defaultBlockState(), 3);
 			level.setBlock(spawn.above(), Blocks.AIR.defaultBlockState(), 3);
 			Villager villager = EntityTypes.VILLAGER.spawn(level, spawn, EntitySpawnReason.COMMAND);
 			if (villager == null) throw new IllegalStateException("resident fixture did not spawn");
+			if (level.getEntity(villager.getUUID()) != villager) {
+				level.getChunkAt(spawn);
+				if (!level.addFreshEntity(villager)) throw new IllegalStateException("resident fixture was not tracked at " + spawn.toShortString());
+			}
 			villager.setPos(spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5);
 			villager.addTag("vp090_fixture");
 			villager.setInvulnerable(true);
@@ -185,7 +235,8 @@ public final class RailEndToEndChecks {
 	private static DepotLayout layoutDepots(ServerLevel level, VillageRef ref, Container stock) {
 		BlockPos granary = ref.bell().north(16);
 		BlockPos toolshed = ref.bell().north(24);
-		BlockPos station = ref.bell().east(10);
+		// Station sits beside the eastbound centerline so its chest is not the rail bed.
+		BlockPos station = ref.bell().north(8);
 		preparePad(level, granary);
 		preparePad(level, toolshed);
 		preparePad(level, station);

@@ -13,7 +13,7 @@ Gradle pulls these via the [Modrinth Maven](https://docs.modrinth.com/docs/other
 | EMF (Fresh Animations stack) | `entity-model-features` | **3.3.12-fabric-26.2** | |
 | ETF (Fresh Animations stack) | `entitytexturefeatures` | **7.2.6-fabric-26.2** | |
 | Serene Seasons | `serene-seasons` | **26.1.2.0.6** | |
-| Towns and Towers | `towns-and-towers` | **1.13.11** | |
+| Towns and Towers | `towns-and-towers` | **1.13.11** | Fabric mod id is `t_and_t` |
 | Village Taverns | `village-taverns` | **1.3.0+26.2-fabric** | Requires **structure-pool-api** |
 | Villager API (More Villagers) | `villagerapi` | **1.26.7.1** | Transitive for More Villagers |
 | GlitchCore (Serene Seasons) | `glitchcore` | **26.2.0.0.0** | Transitive for Serene Seasons |
