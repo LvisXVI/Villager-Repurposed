@@ -26,7 +26,8 @@ final class RailResources {
 		List<Container> stores = stores(level, village);
 		return has(stores, Items.IRON_INGOT, 8)
 			&& has(stores, Items.GOLD_INGOT, 8)
-			&& has(stores, Items.REDSTONE, 16);
+			&& has(stores, Items.REDSTONE, 16)
+			&& has(stores, Items.RAIL, 8);
 	}
 
 	static boolean pay(ServerLevel level, VillageRef village, boolean powered, boolean needsSupport) {

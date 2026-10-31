@@ -37,6 +37,24 @@ public final class Villages {
 		CACHE.remove(id);
 	}
 
+	/** Clears cached village lookups between isolated dev fixtures. */
+	public static void resetAssignmentCache() {
+		CACHE.clear();
+	}
+
+	/** Assigns meeting point (and optional home) so {@link #residents} and {@link #find} agree in dev checks. */
+	public static void bindResident(ServerLevel level, VillageRef ref, Villager villager, BlockPos home) {
+		GlobalPos bell = GlobalPos.of(level.dimension(), ref.bell());
+		villager.getBrain().setMemory(MemoryModuleType.MEETING_POINT, bell);
+		if (home != null) {
+			villager.getBrain().setMemory(MemoryModuleType.HOME, GlobalPos.of(level.dimension(), home));
+		}
+		level.getChunkAt(ref.bell());
+		noteChunk(level.getChunkAt(ref.bell()));
+		villager.addTag("vp_resident_bell:" + ref.bell().asLong());
+		CACHE.put(villager.getUUID(), new CachedVillage(ref, level.getGameTime() + 400L));
+	}
+
 	public static VillageRef find(ServerLevel level, Villager v) {
 		long now = level.getGameTime();
 		CachedVillage cached = CACHE.get(v.getUUID());
@@ -90,11 +108,19 @@ public final class Villages {
 
 	/** Residents assigned to this bell by village memory, excluding overlapping neighboring settlements. */
 	public static java.util.List<Villager> residents(ServerLevel level, VillageRef ref, int range, java.util.function.Predicate<Villager> filter) {
-		return level.getEntitiesOfClass(Villager.class, new net.minecraft.world.phys.AABB(ref.bell()).inflate(range), v -> {
-			if (!v.isAlive() || !filter.test(v)) return false;
+		java.util.List<Villager> out = new java.util.ArrayList<>();
+		for (net.minecraft.world.entity.Entity entity : level.getAllEntities()) {
+			if (!(entity instanceof Villager v) || !v.isAlive() || !filter.test(v)) continue;
+			Optional<GlobalPos> meeting = v.getBrain().getMemory(MemoryModuleType.MEETING_POINT);
+			if (meeting.isPresent() && meeting.get().dimension() == level.dimension()) {
+				if (meeting.get().pos().equals(ref.bell())) out.add(v);
+				continue;
+			}
+			if (v.blockPosition().distSqr(ref.bell()) > (long) range * range) continue;
 			VillageRef assigned = find(level, v);
-			return assigned != null && assigned.bell().equals(ref.bell());
-		});
+			if (assigned != null && assigned.bell().equals(ref.bell())) out.add(v);
+		}
+		return out;
 	}
 
 	private static final java.util.Map<Long, Long> SWEPT = new java.util.HashMap<>();

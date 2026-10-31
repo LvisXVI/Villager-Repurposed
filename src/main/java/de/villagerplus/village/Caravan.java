@@ -828,6 +828,21 @@ public final class Caravan {
 
 	public static boolean carryingFor(Villager villager) { return PORTER_CARRIES.containsKey(villager.getUUID()); }
 
+	/** Same chest-slot layout as caravan spawn; call after {@link net.minecraft.world.entity.animal.equine.Donkey#setChest(boolean)}. */
+	public static void prepareDonkeyCargo(net.minecraft.world.entity.animal.equine.Donkey donkey, int cargoSlot, ItemStack stack) {
+		if (!donkey.hasChest()) donkey.setChest(true);
+		var chestLayout = donkey.getSlot(499);
+		if (chestLayout != null && chestLayout.get().isEmpty()) chestLayout.set(new ItemStack(Items.CHEST));
+		var access = donkey.getSlot(500 + cargoSlot);
+		if (access != null && access.set(stack.copy())) return;
+		for (int slot = 2; slot < 17; slot++) {
+			var fallback = donkey.getSlot(500 + slot);
+			if (fallback == null) continue;
+			if (fallback.set(stack.copy())) return;
+		}
+		throw new IllegalStateException("donkey cargo slot unavailable: " + cargoSlot);
+	}
+
 	public static void releasePorter(Villager villager) {
 		if(villager.level() instanceof ServerLevel level) releasePorter(level,villager.getUUID());
 	}

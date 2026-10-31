@@ -47,7 +47,7 @@ public final class AutoTest {
 			int exit = code;
 			Thread halt = new Thread(() -> {
 				try {
-					Thread.sleep(400);
+					Thread.sleep(1500);
 				} catch (InterruptedException ignored) {
 					Thread.currentThread().interrupt();
 				}

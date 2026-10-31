@@ -44,8 +44,11 @@ final class RoadRoute {
   boolean legacy=otherState!=null&&otherKey!=null
    &&otherState.getOrDefault(otherKey,0L)>otherState.getOrDefault(otherKey+":start",0L);
   List<BlockPos> points=legacy?legacy(a,b):plan(level,a,b);
-  if(points==null&&legacy){storeLegacy(state,key,a,b);return true;}
-  if(points==null)return false;
+  if(points==null) {
+   // A* can fail on graded platforms or unloaded margins; Manhattan geometry is still valid for bilateral links.
+   if(legacy(a,b)!=null) { storeLegacy(state,key,a,b); return true; }
+   return false;
+  }
   store(state,key,a,b,points,legacy?2L:3L);
   return true;
  }
@@ -53,7 +56,13 @@ final class RoadRoute {
  static boolean ensureWithRetry(ServerLevel level,BlockPos a,BlockPos b,Map<String,Long> state,String key,
                                 Map<String,Long> otherState,String otherKey,long now,boolean preserveLegacy) {
   String retryKey=key+":routeRetryAt";
-  if(state.getOrDefault(retryKey,0L)>now)return false;
+  if(state.getOrDefault(retryKey,0L)>now) {
+   if(validStored(state,key,a,b)||validLegacy(state,key,a,b)||ensure(level,a,b,state,key,otherState,otherKey,true)) {
+    state.remove(retryKey);
+    return true;
+   }
+   return false;
+  }
   if(ensure(level,a,b,state,key,otherState,otherKey,preserveLegacy)) {
    state.remove(retryKey);return true;
   }

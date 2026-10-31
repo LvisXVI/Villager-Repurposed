@@ -9,10 +9,41 @@ base {
 	archivesName = project.archives_base_name
 }
 
+repositories {
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = 'Modrinth'
+				url = 'https://api.modrinth.com/maven'
+			}
+		}
+		filter {
+			includeGroup 'maven.modrinth'
+		}
+	}
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Modpack (dev + runServer classpath; unobfuscated Loom uses implementation, not modImplementation)
+	implementation "maven.modrinth:cloth-config:${project.modrinth_cloth_config}"
+	implementation "maven.modrinth:lithostitched:${project.modrinth_lithostitched}"
+	implementation "maven.modrinth:ct-overhaul-village:${project.modrinth_ctov}"
+	implementation "maven.modrinth:farmers-delight-refabricated:${project.modrinth_farmers_delight}"
+	implementation "maven.modrinth:chefs-delight:${project.modrinth_chefs_delight}"
+	implementation "maven.modrinth:more-villagers-re-employed:${project.modrinth_more_villagers}"
+	implementation "maven.modrinth:entity-model-features:${project.modrinth_emf}"
+	implementation "maven.modrinth:entitytexturefeatures:${project.modrinth_etf}"
+	implementation "maven.modrinth:serene-seasons:${project.modrinth_serene_seasons}"
+	implementation "maven.modrinth:towns-and-towers:${project.modrinth_towns_and_towers}"
+	implementation "maven.modrinth:village-taverns:${project.modrinth_village_taverns}"
+	implementation "maven.modrinth:villagerapi:${project.modrinth_villagerapi}"
+	implementation "maven.modrinth:glitchcore:${project.modrinth_glitchcore}"
+	implementation "maven.modrinth:cristel-lib:${project.modrinth_cristel_lib}"
+	implementation "maven.modrinth:structure-pool-api:${project.modrinth_structure_pool_api}"
 }
 
 processResources {
