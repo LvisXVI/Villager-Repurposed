@@ -1,4 +1,21 @@
 # Villagers: Repurposed (Fabric, Minecraft 26.2)
+> **A living village, block by block.** Villagers: Repurposed gives Minecraft villages homes, daily routines, work, trade, and room to grow.
+
+[Project website](https://lvisxvi.github.io/Villager-Repurposed/) · [GitHub repository](https://github.com/LvisXVI/Villager-Repurposed) · [Luis's portfolio](https://lvisxvi.github.io/)
+
+![Villagers: Repurposed — a village that grows with its people](docs/assets/village-banner.svg)
+
+**Fabric · Minecraft 26.2 · Java 25**
+
+Villagers: Repurposed turns a village into a small, persistent community. Residents keep homes and personal belongings, follow a daily schedule, take on jobs, trade with neighbours, and build useful places as the village grows. The project is under active development; compatibility and feature status are documented below and in the project docs.
+
+### Explore
+
+- [What the mod does](#neu-in-090-handelsnetz-dorfschrein-und-marktleben)
+- [Features and compatibility](FEATURES.md)
+- [Development status and test notes](AI-HANDOFF.md)
+- [Project website](https://lvisxvi.github.io/Villager-Repurposed/)
+- [More projects by Luis](https://lvisxvi.github.io/)
 
 Dorfbewohner haben Namen, feste Häuser mit Schild, einen festen Tagesplan und echte Aufgaben. Das Dorf bekommt eine Dorfmitte
 mit Doppelkiste und wächst selbstständig. Server- und Client-Mod (der Info-Knopf braucht die Mod auch beim Spieler; Einzelspieler funktioniert), benötigt Fabric Loader 0.20.1+,
