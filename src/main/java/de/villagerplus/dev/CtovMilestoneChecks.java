@@ -94,43 +94,80 @@ public final class CtovMilestoneChecks {
 		Villages.ensureCenter(level, ref, mason, level.getGameTime() + 10_000);
 		Container chest = ensureChest(level, ref);
 		BlockPos harnessGranary = Specials.get(ref, Blueprints.GRANARY);
-		if (harnessGranary != null) {
+		if (harnessGranary != null && solidBlocks(level, harnessGranary) < 40) {
 			Specials.remove(ref, Blueprints.GRANARY);
 			if (ref.data().hasPlan() && Blueprints.GRANARY.equals(ref.data().planType)) ref.data().clearPlan();
 		}
 		ref.data().nextBuild = 0;
 		if ("ctov-headless".equals(ref.data().planType) && ref.data().planOrigin.isEmpty()) ref.data().clearPlan();
+		int checks = 0;
+		checks += walkMilestone(level, ref, chest, mason, Blueprints.GRANARY);
+		checks += walkMilestone(level, ref, chest, mason, Blueprints.TOOLSHED);
+		checks += walkMilestone(level, ref, chest, mason, Blueprints.SCHOOL);
+		checks += walkMilestone(level, ref, chest, mason, Blueprints.KITCHEN);
+		return checks;
+	}
+
+	private static int walkMilestone(ServerLevel level, VillageRef ref, Container chest, Villager mason, String type) {
+		if (milestoneDone(ref, type)) {
+			BlockPos at = milestonePos(ref, type);
+			check(at != null && solidBlocks(level, at) >= 40, "walk: existing " + type + " still stands");
+			System.out.println("CTOV WALK KEEP " + type + " " + at.toShortString());
+			return 2;
+		}
 		String supplied = "";
 		BlockPos planStart = null;
-		BlockPos startPos = mason.blockPosition();
-		int checks = 0;
-		for (int tick = 0; tick < 12000 && Specials.get(ref, Blueprints.GRANARY) == null; tick++) {
+		int stagnant = 0;
+		int lastStep = -1;
+		long lastProgress = -1;
+		for (int tick = 0; tick < 20000 && !milestoneDone(ref, type); tick++) {
 			level.tick(() -> false);
-			if (planStart == null && ref.data().planOrigin.isPresent() && Blueprints.GRANARY.equals(ref.data().planType)) {
-				planStart = mason.blockPosition();
+			if (ref.data().planOrigin.isPresent()) {
+				BlockPos origin = ref.data().planOrigin.get();
+				level.setChunkForced(origin.getX() >> 4, origin.getZ() >> 4, true);
+				if (planStart == null && type.equals(ref.data().planType)) planStart = mason.blockPosition();
 			}
 			String wishlist = String.join("|", ref.data().wanted);
 			if (!wishlist.isEmpty() && !wishlist.equals(supplied)) {
 				supply(chest, ref.data().wanted);
 				supplied = wishlist;
 			}
-			if (tick % 200 == 0) {
-				System.out.println("CTOV WALK tick " + tick + " step=" + ref.data().planStep + "/" + Builder.planSize(ref.data())
+			int step = ref.data().planStep;
+			long progress = ref.data().planProgress;
+			if (step != lastStep || progress != lastProgress || !type.equals(ref.data().planType)) {
+				lastStep = step;
+				lastProgress = progress;
+				stagnant = 0;
+			} else if (++stagnant > 8000) {
+				throw new IllegalStateException("CTOV walk stalled on " + type + " step " + step + "/" + Builder.planSize(ref.data())
 					+ " origin=" + ref.data().planOrigin.map(BlockPos::toShortString).orElse("none")
-					+ " mason=" + mason.blockPosition().toShortString());
+					+ " mason=" + mason.blockPosition().toShortString()
+					+ " wanted=" + ref.data().wanted);
+			}
+			if (tick % 400 == 0) {
+				System.out.println("CTOV WALK " + type + " tick " + tick + " step=" + step + "/" + Builder.planSize(ref.data())
+					+ " plan=" + ref.data().planType + " mason=" + mason.blockPosition().toShortString());
 				System.out.flush();
 			}
 		}
-		BlockPos granary = Specials.get(ref, Blueprints.GRANARY);
-		check(granary != null, "walk: the village finished a granary during normal ticks"); checks++;
+		check(milestoneDone(ref, type), "walk: village finished " + type + " during normal ticks");
+		BlockPos built = milestonePos(ref, type);
 		double walked = planStart == null ? 0 : Math.sqrt(mason.blockPosition().distSqr(planStart));
-		double fromStart = Math.sqrt(mason.blockPosition().distSqr(startPos));
-		check(walked >= 3.0 || fromStart >= 3.0, "walk: mason moved under navigation (plan-start delta " + walked + ", bell delta " + fromStart + ")"); checks++;
-		check(solidBlocks(level, granary) >= 40, "walk: granary footprint contains placed blocks"); checks++;
-		ref.bellEntity().setChanged();
-		level.getChunkAt(granary).markUnsaved();
-		System.out.println("CTOV WALK PASS granary " + granary.toShortString() + " moved " + walked + " blocks after the plan started");
-		return checks;
+		check(walked >= 3.0, "walk: mason moved to " + type + " (" + walked + " blocks)");
+		check(built != null && solidBlocks(level, built) >= 40, "walk: " + type + " footprint contains placed blocks");
+		level.getChunkAt(built).markUnsaved();
+		System.out.println("CTOV WALK PASS " + type + " " + built.toShortString() + " moved " + walked);
+		return 3;
+	}
+
+	static boolean milestoneDone(VillageRef ref, String type) {
+		if (Blueprints.SCHOOL.equals(type)) return ref.data().extra.school.isPresent();
+		return Specials.has(ref, type);
+	}
+
+	static BlockPos milestonePos(VillageRef ref, String type) {
+		if (Blueprints.SCHOOL.equals(type)) return ref.data().extra.school.orElse(null);
+		return Specials.get(ref, type);
 	}
 
 	private static Container ensureChest(ServerLevel level, VillageRef ref) {

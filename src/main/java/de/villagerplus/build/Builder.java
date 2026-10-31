@@ -359,11 +359,11 @@ public final class Builder {
 			} else if (Development.needsStorage(box, d, level) && pop >= 4 && storageFree(c, ref)) {
 				// Dorfkiste ist voll: zuerst ein Lagerschuppen, damit nichts liegen bleibt oder verloren geht.
 				type = Blueprints.STORAGE;
+			} else if (special != null) {
+				// Toolshed, school and kitchen follow even when a few generated villagers have no recorded bed.
+				type = special;
 			} else if (needHouse) {
 				type = Blueprints.HOUSE;
-			} else if (homeless == 0 && special != null) {
-				// Pflicht-Meilensteine vor Rathaus/Brunnen: auch groeßere Dörfer holen Kerninfrastruktur nach.
-				type = special;
 			} else if (homeless == 0 && !d.townHallBuilt && pop >= Config.TOWNHALL_POP) {
 				type = Blueprints.TOWNHALL;
 			} else if (!d.wellBuilt && pop >= 3) {
@@ -754,6 +754,11 @@ public final class Builder {
 		ServerLevel level = c.level();
 		VillageData d = ref.data();
 		BlockPos origin = d.planOrigin.get();
+		if (Math.abs(origin.getY() - ref.bell().getY()) > 12) {
+			abort(d, ref, c.now());
+			why = "Bauplatz liegt ausserhalb der Dorfhoehe";
+			return false;
+		}
 		Direction dir = Direction.from2DDataValue(d.planDir);
 		List<Step> steps = stepsFor(level, ref, origin, dir, c);
 		// Material zuerst pruefen (noch vor dem Weg zur Baustelle): fehlt etwas, beschaffen es die anderen Handwerker.
@@ -793,6 +798,11 @@ public final class Builder {
 				c.v().getNavigation().stop();
 				c.v().getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
 				c.st().cooldownUntil = c.now() + 40;
+				if (c.v().blockPosition().distSqr(origin) > 24 * 24) {
+					abort(d, ref, c.now());
+					why = "kein Weg zum Bauplatz";
+					return false;
+				}
 				return true;
 			}
 			if (!JobUtil.approach(c, stand, 6.0)) {
@@ -987,7 +997,7 @@ public final class Builder {
 			if (path != null && path.canReach()) return feet;
 			if (distance < best) { best = distance; closest = feet; }
 		}
-		return closest;
+		return closest != null && best <= 36.0 * 36.0 ? closest : null;
 	}
 
 	/** Independent bounded search, leaving navigation range and node-budget settings untouched. */

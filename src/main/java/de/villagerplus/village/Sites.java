@@ -32,6 +32,7 @@ public final class Sites {
 				continue;
 			}
 			int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+			if (Math.abs(y - around.getY()) > 12) continue;
 			BlockPos c = new BlockPos(x, y, z);
 			if (ok(level, c, half, headroom)) {
 				return c;
@@ -185,6 +186,7 @@ public final class Sites {
 				continue;
 			}
 			int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+			if (Math.abs(y - around.getY()) > 12) continue;
 			BlockPos c = new BlockPos(x, y, z);
 			if (okRect(level, c, minX, maxX, minZ, maxZ, headroom)) {
 				return c;
