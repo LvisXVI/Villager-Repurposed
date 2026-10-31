@@ -4,10 +4,10 @@
 
 ## Lauf 31.10.2026 – Phase 4 CTOV-Kornspeicher
 
-- Branch `cursor/master-prompt-phase4-ea40`. Fehlender Kornspeicher wird vor neuen Häusern beauftragt. Generierte Bewohner ohne Treffpunkt werden der nächsten Glocke zugeordnet.
-- `VP_AUTOTEST=ctov` auf `vp-ctov-headless`: **39 PASS**, Kornspeicher `-331, 75, -275`.
-- `VP_AUTOTEST=ctov-verify`: **3 PASS** (Attachment, Registrierung, Blöcke nach Neustart).
-- Nächster Schritt: Werkzeugkammer im selben Dorf, danach J01-Feld in CTOV. `./gradlew build` und `VP_AUTOTEST=headless` **220 PASS** nach der Prioritätsänderung.
+- Ehrlicher Lauf `runWalk`: kein `setNoAi`, kein `setPos`, Material nur bei neuer Wunschliste, danach nur Server-Ticks. Maurer ging 34 Blöcke und baute den Kornspeicher `-253, 71, -341`. Der Stand bei `-331, 75, -275` bleibt der Harness.
+- `VP_AUTOTEST=ctov` **42 PASS**. `ctov-verify` **3 PASS** für `-253, 71, -341`. `headless` **220 PASS**. Build grün.
+- Baustand-Annäherung im Produktionscode von 5 auf 6 Blöcke.
+- Nächster Schritt: Werkzeugkammer im selben Dorf per Walk, danach J01.
 
 
 - Neue Headless-Modi: **`milestones`**, **`farmexpand`**, **`railtransport`**, **`railmetro`**, **`caravandelivery`**, **`cookdelight`**, **`compat`** (siehe `AutoTest.HEADLESS`).

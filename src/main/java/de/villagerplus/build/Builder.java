@@ -795,7 +795,7 @@ public final class Builder {
 				c.st().cooldownUntil = c.now() + 40;
 				return true;
 			}
-			if (!JobUtil.approach(c, stand, 5.0)) {
+			if (!JobUtil.approach(c, stand, 6.0)) {
 				// Keep the final stand as the anti-stuck distance, but give the vanilla brain a short
 				// waypoint on the verified route: its own path searches normally stop at 16 blocks.
 				var route = workPath(c, stand);
@@ -982,7 +982,7 @@ public final class Builder {
 			if (feet.getX() >= minX && feet.getX() <= maxX && feet.getZ() >= minZ && feet.getZ() <= maxZ) continue;
 			if (!safeWorkFloor(c.level(), feet)) continue;
 			double distance = c.v().position().distanceToSqr(net.minecraft.world.phys.Vec3.atBottomCenterOf(feet));
-			if (distance <= 25.0) return feet;
+			if (distance <= 36.0) return feet;
 			var path = workPath(c, feet);
 			if (path != null && path.canReach()) return feet;
 			if (distance < best) { best = distance; closest = feet; }

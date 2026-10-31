@@ -23,6 +23,13 @@ public final class Specials {
 		return all(ref).get(type);
 	}
 
+	public static void remove(VillageRef ref, String type) {
+		Map<String, BlockPos> m = new HashMap<>(all(ref));
+		if (m.remove(type) == null) return;
+		ref.bellEntity().setAttached(VillagerPlus.SPECIALS, Map.copyOf(m));
+		ref.dirty();
+	}
+
 	public static void set(VillageRef ref, String type, BlockPos origin) {
 		Map<String, BlockPos> m = new HashMap<>(all(ref));
 		m.put(type, origin);
@@ -96,12 +103,5 @@ public final class Specials {
 			}
 		}
 		return out;
-	}
-
-	public static void remove(VillageRef ref, String type) {
-		Map<String, BlockPos> m = new HashMap<>(all(ref));
-		m.remove(type);
-		ref.bellEntity().setAttached(VillagerPlus.SPECIALS, Map.copyOf(m));
-		ref.dirty();
 	}
 }
