@@ -648,3 +648,9 @@ Karte/Balken/Tabs (Textausgabe), Expeditionen inkl. Verletzte und Beute, Lagersc
 - Keine Mod-Builds oder Spieltests ausgeführt. Nächster Schritt: Nutzer kann die Portfolio-Karte neu laden und den Bildausschnitt prüfen.
 
 
+## Website-Navigation in Projektseiten 31.10.2026
+- Nutzer meldete, dass Villagers: Repurposed aus den drei Einzelprojekt-Sidebars fehlte. Eintrag `04 / Villagers: Repurposed` mit Ziel `../Villager-Repurposed/` in `docs/index.html` der Repos `minecraft-host`, `modspire` und `minecraft-mod-studio` ergänzt.
+- Auf deren `main` gepusht: `minecraft-host` `70c021b` (Pages `41233993634`), `modspire` `34c7603` (Pages `41233993964`), `minecraft-mod-studio` `dbf9dd7` (Pages `41233994025`); alle drei Deployments erfolgreich.
+- Liveprüfung: alle drei Projektseiten und Villagers-Ziel HTTP 200; Sidebar enthält Nummer 04, Label und gültigen Link. Keine Mod-Builds oder Spieltests ausgeführt.
+
+
