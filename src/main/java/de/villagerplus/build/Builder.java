@@ -105,7 +105,8 @@ public final class Builder {
 
 	/** Mandatory civic milestones continue immediately after each completion instead of waiting a full house-build cooldown. */
 	static boolean cooldownBlocksBuild(VillageRef ref, int population, long homeless, long now) {
-		return now < ref.data().nextBuild && (homeless > 0 || nextSpecial(ref, population) == null);
+		if (nextSpecial(ref, population) != null) return false;
+		return now < ref.data().nextBuild;
 	}
 
 	private static final int Roads_POP = de.villagerplus.village.Roads.RAIL_POP;
@@ -214,6 +215,14 @@ public final class Builder {
 			boolean farmerPlan = d.planType.equals(Blueprints.FARM) || d.planType.equals(Blueprints.PEN);
 			if (mason == farmerPlan) {
 				return false;
+			}
+			if (mason) {
+				String special = nextSpecial(ref, villagers(c.level(), ref).size());
+				if (special != null && !special.equals(d.planType)
+					&& (d.planType.equals(Blueprints.STORAGE) || d.planType.equals(Blueprints.HOUSE) || d.planType.equals(Blueprints.DECOR))) {
+					abort(d, ref, c.now());
+					return false;
+				}
 			}
 			boolean result = d.planType.equals(Blueprints.WALL) ? continueWall(c, ref, box) : continuePlan(c, ref, box);
 			if (c.now() - lastDiag > 1200 && d.planStep == 0) {
@@ -492,7 +501,7 @@ public final class Builder {
 				String selectedType = type;
 				int selectedVariant = variant;
 				Architect.Design selectedDesign = design;
-				java.util.function.Predicate<BlockPos> fits = p -> ZoneAwareSites.allowsPlan(ref, selectedType,
+				java.util.function.Predicate<BlockPos> fits = p -> !rejectedPlot(ref, p) && ZoneAwareSites.allowsPlan(ref, selectedType,
 					sitingSteps(c, ref, selectedType, selectedVariant, selectedDesign, style, p));
 				if (type.equals(Blueprints.TOWNHALL)) {
 					BlockPos center = de.villagerplus.village.Development.center(level, ref);
@@ -521,7 +530,7 @@ public final class Builder {
 				int systematicHeadroom = headroom;
 				int systematicVariant = variant;
 				Architect.Design systematicDesign = design;
-				java.util.function.Predicate<BlockPos> systematicFits = p -> ZoneAwareSites.allowsPlan(ref, type,
+				java.util.function.Predicate<BlockPos> systematicFits = p -> !rejectedPlot(ref, p) && ZoneAwareSites.allowsPlan(ref, type,
 					sitingSteps(c, ref, type, systematicVariant, systematicDesign, style, p));
 				site = ZoneAwareSites.findSystematic(level, ref, type, c.v().getRandom(), min, systematicMax,
 					-systematicHalf, systematicHalf, -systematicHalf, systematicHalf, systematicHeadroom, systematicFits);
@@ -754,11 +763,6 @@ public final class Builder {
 		ServerLevel level = c.level();
 		VillageData d = ref.data();
 		BlockPos origin = d.planOrigin.get();
-		if (Math.abs(origin.getY() - ref.bell().getY()) > 12) {
-			abort(d, ref, c.now());
-			why = "Bauplatz liegt ausserhalb der Dorfhoehe";
-			return false;
-		}
 		Direction dir = Direction.from2DDataValue(d.planDir);
 		List<Step> steps = stepsFor(level, ref, origin, dir, c);
 		// Material zuerst pruefen (noch vor dem Weg zur Baustelle): fehlt etwas, beschaffen es die anderen Handwerker.
@@ -792,6 +796,12 @@ public final class Builder {
 		if (steps != null) {
 			// Nicht mitten im Bauwerk stehen (sonst mauert sich der Baumeister ein): Standort vor dem Gebaeude.
 			BlockPos stand = workStand(c, origin, dir, steps);
+			if (stand != null && stand.getY() < ref.bell().getY() - 12) {
+				rejectPlot(ref, origin);
+				abort(d, ref, c.now());
+				why = "Baustand liegt unter dem Dorf";
+				return false;
+			}
 			if (stand == null) {
 				why = "kein erreichbarer sicherer Arbeitsplatz";
 				c.setActivity("wartet auf einen erreichbaren sicheren Arbeitsplatz");
@@ -799,6 +809,7 @@ public final class Builder {
 				c.v().getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
 				c.st().cooldownUntil = c.now() + 40;
 				if (c.v().blockPosition().distSqr(origin) > 24 * 24) {
+					rejectPlot(ref, origin);
 					abort(d, ref, c.now());
 					why = "kein Weg zum Bauplatz";
 					return false;
@@ -806,20 +817,17 @@ public final class Builder {
 				return true;
 			}
 			if (!JobUtil.approach(c, stand, 6.0)) {
-				// Keep the final stand as the anti-stuck distance, but give the vanilla brain a short
-				// waypoint on the verified route: its own path searches normally stop at 16 blocks.
-				var route = workPath(c, stand);
-				if (route != null && route.canReach()) {
-					BlockPos waypoint = stand;
-					for (int i = 0; i < route.getNodeCount(); i++) {
-						BlockPos node = route.getNodePos(i);
-						if (c.v().position().distanceToSqr(net.minecraft.world.phys.Vec3.atBottomCenterOf(node)) > 100.0) break;
-						waypoint = node;
-					}
-					// approach can deliberately erase WALK_TARGET when its retry budget is exhausted.
-					var walk = c.v().getBrain().getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
-					if (walk.isPresent()) c.v().getBrain().setMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET,
-						new net.minecraft.world.entity.ai.memory.WalkTarget(waypoint, walk.get().getSpeedModifier(), 1));
+				// Vanilla path searches stop around 16 blocks, so hand the brain the next node on the
+				// already verified route instead of the distant stand itself.
+				BlockPos waypoint = routeWaypoint(c, stand);
+				c.v().getBrain().setMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET,
+					new net.minecraft.world.entity.ai.memory.WalkTarget(waypoint, (float) Math.min(0.55, 0.45 * de.villagerplus.job.Skills.speed(c.mem())), 1));
+				if (c.st().lastMoveAt == c.now()) d.planProgress = c.now();
+				else if (d.planStep == 0 && c.now() - d.planProgress > 2000) {
+					rejectPlot(ref, origin);
+					abort(d, ref, c.now());
+					why = "Bauplatz nicht erreicht";
+					return false;
 				}
 				why = "geht zur Baustelle " + stand.toShortString() + " von " + c.v().blockPosition().toShortString();
 				return true;
@@ -964,6 +972,21 @@ public final class Builder {
 		return workStand(c, origin, Direction.from2DDataValue(data.planDir), steps);
 	}
 
+	private static final java.util.Map<Long, java.util.Set<Long>> REJECTED_PLOTS = new java.util.HashMap<>();
+
+	/** Remember a plot the builder could not reach so the next search chooses somewhere else. */
+	static void rejectPlot(VillageRef ref, BlockPos plot) {
+		if (ref == null || plot == null) return;
+		java.util.Set<Long> plots = REJECTED_PLOTS.computeIfAbsent(ref.bell().asLong(), key -> new java.util.HashSet<>());
+		if (plots.size() > 64) plots.clear();
+		plots.add(BlockPos.asLong(plot.getX(), 0, plot.getZ()));
+	}
+
+	static boolean rejectedPlot(VillageRef ref, BlockPos plot) {
+		java.util.Set<Long> plots = ref == null ? null : REJECTED_PLOTS.get(ref.bell().asLong());
+		return plots != null && plots.contains(BlockPos.asLong(plot.getX(), 0, plot.getZ()));
+	}
+
 	static BlockPos workStand(Ctx c, BlockPos origin, Direction dir, List<Step> steps) {
 		int minX = origin.getX(), maxX = minX, minZ = origin.getZ(), maxZ = minZ, ext = 2;
 		for (Step step : steps) {
@@ -983,21 +1006,68 @@ public final class Builder {
 			candidates.add(new BlockPos(minX - 3, origin.getY(), z));
 			candidates.add(new BlockPos(maxX + 3, origin.getY(), z));
 		}
-		BlockPos closest = null;
-		double best = Double.MAX_VALUE;
+		for (int gap = 4; gap <= 8; gap++) {
+			candidates.add(new BlockPos(midX, origin.getY(), minZ - gap));
+			candidates.add(new BlockPos(midX, origin.getY(), maxZ + gap));
+			candidates.add(new BlockPos(minX - gap, origin.getY(), midZ));
+			candidates.add(new BlockPos(maxX + gap, origin.getY(), midZ));
+		}
+		List<BlockPos> floors = new ArrayList<>();
 		for (BlockPos column : candidates) {
 			if (!c.level().hasChunkAt(column)) continue;
-			BlockPos feet = new BlockPos(column.getX(), c.level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-				column.getX(), column.getZ()), column.getZ());
+			BlockPos feet = standOnColumn(c.level(), column.getX(), column.getZ(), origin.getY());
+			if (feet == null) continue;
 			if (feet.getX() >= minX && feet.getX() <= maxX && feet.getZ() >= minZ && feet.getZ() <= maxZ) continue;
-			if (!safeWorkFloor(c.level(), feet)) continue;
+			floors.add(feet);
+		}
+		if (floors.isEmpty()) return null;
+		int[] heights = floors.stream().mapToInt(BlockPos::getY).sorted().toArray();
+		int median = heights[heights.length / 2];
+		floors.removeIf(feet -> median - feet.getY() > 4);
+		for (BlockPos feet : floors) {
 			double distance = c.v().position().distanceToSqr(net.minecraft.world.phys.Vec3.atBottomCenterOf(feet));
 			if (distance <= 36.0) return feet;
 			var path = workPath(c, feet);
 			if (path != null && path.canReach()) return feet;
-			if (distance < best) { best = distance; closest = feet; }
 		}
-		return closest != null && best <= 36.0 * 36.0 ? closest : null;
+		return null;
+	}
+
+	/** Ground the worker can stand on: the heightmap, or the street under a roof when the roof is above the build level. */
+	static BlockPos standOnColumn(ServerLevel level, int x, int z, int preferY) {
+		if (!level.hasChunkAt(new BlockPos(x, preferY, z))) return null;
+		int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+		BlockPos surface = new BlockPos(x, top, z);
+		if (!safeWorkFloor(level, surface)) return null;
+		if (surface.getY() > preferY + 2) {
+			BlockPos lower = shelteredFloor(level, surface, preferY);
+			if (lower != null) return lower;
+		}
+		return surface;
+	}
+
+	/** A 2-block gap under a roof, so the stand is the street rather than the roof ridge. */
+	private static BlockPos shelteredFloor(ServerLevel level, BlockPos roofFeet, int preferY) {
+		int solids = 0;
+		for (int y = roofFeet.getY() - 1; y >= Math.max(preferY - 2, roofFeet.getY() - 8); y--) {
+			BlockPos feet = new BlockPos(roofFeet.getX(), y, roofFeet.getZ());
+			if (safeWorkFloor(level, feet)) return feet;
+			if (!level.getBlockState(feet).getCollisionShape(level, feet).isEmpty() && ++solids > 2) return null;
+		}
+		return null;
+	}
+
+	/** Next node on a verified route, about eight blocks ahead, so vanilla navigation can recompute it. */
+	public static BlockPos routeWaypoint(Ctx c, BlockPos goal) {
+		var route = workPath(c, goal);
+		if (route == null || !route.canReach() || route.getNodeCount() == 0) return goal;
+		BlockPos waypoint = null;
+		for (int i = 0; i < route.getNodeCount(); i++) {
+			BlockPos node = route.getNodePos(i);
+			if (c.v().position().distanceToSqr(net.minecraft.world.phys.Vec3.atBottomCenterOf(node)) > 100.0) break;
+			waypoint = node;
+		}
+		return waypoint != null ? waypoint : goal;
 	}
 
 	/** Independent bounded search, leaving navigation range and node-budget settings untouched. */

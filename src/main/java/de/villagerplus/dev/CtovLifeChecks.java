@@ -41,12 +41,14 @@ public final class CtovLifeChecks {
 		if (Workstation.find(level, ref.bell(), Blocks.FURNACE, 8) == null) {
 			add(chest, new ItemStack(Items.COBBLESTONE, 8));
 			var state = JobManager.state(worker);
-			for (int tick = 0; tick < 800 && Workstation.find(level, ref.bell(), Blocks.FURNACE, 8) == null; tick++) {
+			for (int tick = 0; tick < 2000 && Workstation.find(level, ref.bell(), Blocks.FURNACE, 8) == null; tick++) {
 				Workstation.ensure(new Ctx(level, worker, state, worker.getAttachedOrCreate(VillagerPlus.MEMORY), ref, level.getGameTime() + tick), Blocks.FURNACE);
 				level.tick(() -> false);
 			}
 		}
-		check(Workstation.find(level, ref.bell(), Blocks.FURNACE, 8) != null, "B01 smith crafts and places a furnace beside the village chest");
+		check(Workstation.find(level, ref.bell(), Blocks.FURNACE, 8) != null,
+			"B01 smith crafts and places a furnace beside the village chest (table="
+				+ Workstation.find(level, ref.bell(), Blocks.CRAFTING_TABLE, 8) + " chest=" + ref.chestPos(level) + ")");
 		System.out.println("CTOV LIFE PASS furnace");
 		return 1;
 	}

@@ -20,6 +20,11 @@ public final class Sites {
 	/** Mindestabstand zu bestehenden Gebaeuden in Bloecken (Standard 3; Notloesung in engen Doerfern 2). */
 	public static int margin = 3;
 
+	/** A plot more than twelve blocks above or below the bell is a pit or a roof, not a village stand. */
+	public static boolean villageLevel(BlockPos around, int y) {
+		return Math.abs(y - around.getY()) <= 12;
+	}
+
 	/** Findet einen Mittelpunkt (erste freie Luftschicht ueber dem Boden) im Ring minDist..maxDist um {@code around}. */
 	public static BlockPos find(ServerLevel level, BlockPos around, RandomSource r, int minDist, int maxDist, int half, int headroom,
 		int attempts) {
@@ -32,7 +37,7 @@ public final class Sites {
 				continue;
 			}
 			int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-			if (Math.abs(y - around.getY()) > 12) continue;
+			if (!villageLevel(around, y)) continue;
 			BlockPos c = new BlockPos(x, y, z);
 			if (ok(level, c, half, headroom)) {
 				return c;
@@ -72,6 +77,7 @@ public final class Sites {
 			int z = around.getZ() + (int) Math.round(Math.sin(angle) * radius);
 			if (!seen.add(BlockPos.asLong(x, 0, z)) || !level.hasChunkAt(new BlockPos(x, around.getY(), z))) continue;
 			BlockPos candidate = new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
+			if (!villageLevel(around, candidate.getY())) continue;
 			if (tolerant) {
 				int base = tolerantBase(level, candidate, minX, maxX, minZ, maxZ, headroom);
 				if (base == Integer.MIN_VALUE) continue;
@@ -186,7 +192,7 @@ public final class Sites {
 				continue;
 			}
 			int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-			if (Math.abs(y - around.getY()) > 12) continue;
+			if (!villageLevel(around, y)) continue;
 			BlockPos c = new BlockPos(x, y, z);
 			if (okRect(level, c, minX, maxX, minZ, maxZ, headroom)) {
 				return c;
@@ -215,7 +221,7 @@ public final class Sites {
 				continue;
 			}
 			int base = tolerantBase(level, cand, minX, maxX, minZ, maxZ, headroom);
-			if (base != Integer.MIN_VALUE) {
+			if (base != Integer.MIN_VALUE && villageLevel(around, base)) {
 				return new BlockPos(cand.getX(), base, cand.getZ());
 			}
 		}

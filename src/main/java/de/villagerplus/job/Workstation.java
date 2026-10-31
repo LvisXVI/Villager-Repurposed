@@ -43,6 +43,11 @@ public final class Workstation {
 		Predicate<ItemStack> match = stack -> stack.is(item);
 		if (JobUtil.count(chest, match) == 0) {
 			BlockPos table = find(c.level(), c.village().bell(), Blocks.CRAFTING_TABLE, 8);
+			if (table == null && block == Blocks.CRAFTING_TABLE) {
+				if (JobUtil.count(chest, stack -> stack.is(net.minecraft.tags.ItemTags.PLANKS)) < 4
+					&& RecipeCrafting.craft(c, chest, null, stack -> stack.is(net.minecraft.tags.ItemTags.PLANKS), 16)) return true;
+				return RecipeCrafting.craft(c, chest, null, match, 1);
+			}
 			return table != null && RecipeCrafting.craft(c, chest, table, match, 1);
 		}
 		BlockPos spot = site(c, chestPos);
