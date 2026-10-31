@@ -177,8 +177,19 @@ public final class Villages {
 		return true;
 	}
 
+	/** Generated residents without a meeting point belong to the nearest loaded bell. */
+	public static void adoptUnassigned(ServerLevel level, VillageRef ref) {
+		for (Villager villager : level.getEntitiesOfClass(Villager.class, new net.minecraft.world.phys.AABB(ref.bell()).inflate(de.villagerplus.Config.VILLAGE_RADIUS), Villager::isAlive)) {
+			var meeting = villager.getBrain().getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.MEETING_POINT);
+			if (meeting.isPresent()) continue;
+			villager.getBrain().setMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.MEETING_POINT,
+				net.minecraft.core.GlobalPos.of(level.dimension(), ref.bell()));
+		}
+	}
+
 	/** Stellt sicher, dass das Dorf eine Dorfmitte mit Doppelkiste hat. */
 	public static void ensureCenter(ServerLevel level, VillageRef ref, Villager who, long now) {
+		adoptUnassigned(level, ref);
 		Plaza.ensure(level, ref, who, now);
 		Plaza.refreshShrine(level, ref, who);
 		morningBell(level, ref);

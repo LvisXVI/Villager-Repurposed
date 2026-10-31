@@ -62,7 +62,10 @@ public final class CtovHeadlessChecks {
 		try {
 			Path marker = marker(level.getServer());
 			if (marker.getParent() != null) Files.createDirectories(marker.getParent());
-			Files.writeString(marker, ref.bell().getX() + "," + ref.bell().getY() + "," + ref.bell().getZ() + "\n");
+			BlockPos granary = de.villagerplus.village.Specials.get(ref, de.villagerplus.build.Blueprints.GRANARY);
+			String body = ref.bell().getX() + "," + ref.bell().getY() + "," + ref.bell().getZ() + "\n";
+			if (granary != null) body += granary.getX() + "," + granary.getY() + "," + granary.getZ() + "\n";
+			Files.writeString(marker, body);
 		} catch (java.io.IOException io) {
 			throw new IllegalStateException("CTOV headless: could not write marker", io);
 		}
@@ -80,14 +83,27 @@ public final class CtovHeadlessChecks {
 		Path marker = marker(level.getServer());
 		if (!Files.isRegularFile(marker)) throw new IllegalStateException("CTOV verify: missing marker from prior ctov run");
 		try {
-			String[] parts = Files.readString(marker).trim().split(",");
+			String[] lines = Files.readString(marker).trim().split("\\R");
+			String[] parts = lines[0].split(",");
 			BlockPos bell = new BlockPos(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
 			level.getChunkAt(bell);
 			if (!(level.getBlockEntity(bell) instanceof BellBlockEntity be)) throw new IllegalStateException("CTOV verify: bell missing after restart");
 			check(be.getAttached(VillagerPlus.VILLAGE) instanceof de.villagerplus.village.VillageData saved
 				&& "ctov-headless".equals(saved.planType), "village attachment survived restart");
-			System.out.println("CTOV HEADLESS PASS persistence after restart at " + bell.toShortString());
-			return 1;
+			if (lines.length < 2) throw new IllegalStateException("CTOV verify: granary marker missing");
+			String[] built = lines[1].split(",");
+			BlockPos granary = new BlockPos(Integer.parseInt(built[0]), Integer.parseInt(built[1]), Integer.parseInt(built[2]));
+			level.getChunkAt(granary);
+			var ref = new VillageRef(bell, be.getAttachedOrCreate(VillagerPlus.VILLAGE), be);
+			BlockPos registered = de.villagerplus.village.Specials.get(ref, de.villagerplus.build.Blueprints.GRANARY);
+			check(granary.equals(registered), "granary registration survived restart");
+			int placed = 0;
+			for (BlockPos pos : BlockPos.betweenClosed(granary.offset(-8, -2, -8), granary.offset(8, 8, 8))) {
+				if (!level.getBlockState(pos).isAir()) placed++;
+			}
+			check(placed >= 40, "granary blocks survived restart (" + placed + ")");
+			System.out.println("CTOV HEADLESS PASS persistence after restart at " + bell.toShortString() + " granary " + granary.toShortString());
+			return 3;
 		} catch (java.io.IOException | NumberFormatException parse) {
 			throw new IllegalStateException("CTOV verify: unreadable marker", parse);
 		}
