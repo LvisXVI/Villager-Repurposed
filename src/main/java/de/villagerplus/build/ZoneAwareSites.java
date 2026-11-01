@@ -113,8 +113,10 @@ public final class ZoneAwareSites {
 			if (!level.hasChunkAt(choice)) continue;
 			if (checked++ >= 4096) break;
 			BlockPos anchor = surface(level, choice);
-			if (tolerant) anchor = Sites.tolerantAnchor(level, anchor, minX, maxX, minZ, maxZ, headroom);
-			else if (!Sites.okRect(level, anchor, minX, maxX, minZ, maxZ, headroom)) anchor = null;
+			if (anchor != null && !Sites.villageLevel(ref.bell(), anchor.getY())) anchor = null;
+			if (tolerant) anchor = anchor == null ? null : Sites.tolerantAnchor(level, anchor, minX, maxX, minZ, maxZ, headroom);
+			else if (anchor != null && !Sites.okRect(level, anchor, minX, maxX, minZ, maxZ, headroom)) anchor = null;
+			if (anchor != null && !Sites.villageLevel(ref.bell(), anchor.getY())) anchor = null;
 			if (anchor != null && planFits.test(anchor)) return anchor;
 		}
 		return null;
@@ -127,8 +129,10 @@ public final class ZoneAwareSites {
 			if (!level.hasChunkAt(choice)) continue;
 			if (checked++ >= attempts) break;
 			BlockPos anchor = surface(level, choice);
-			if (tolerant) anchor = Sites.tolerantAnchor(level, anchor, minX, maxX, minZ, maxZ, headroom);
-			else if (!Sites.okRect(level, anchor, minX, maxX, minZ, maxZ, headroom)) anchor = null;
+			if (anchor != null && !Sites.villageLevel(ref.bell(), anchor.getY())) anchor = null;
+			if (tolerant) anchor = anchor == null ? null : Sites.tolerantAnchor(level, anchor, minX, maxX, minZ, maxZ, headroom);
+			else if (anchor != null && !Sites.okRect(level, anchor, minX, maxX, minZ, maxZ, headroom)) anchor = null;
+			if (anchor != null && !Sites.villageLevel(ref.bell(), anchor.getY())) anchor = null;
 			if (anchor != null && planFits.test(anchor)) return anchor;
 		}
 		return null;

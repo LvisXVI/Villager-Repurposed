@@ -196,7 +196,7 @@ public class FarmerJob implements Job {
 		var stores = Balance.storage(c.level(), ref);
 		if (stores.isEmpty() || c.now() < data.extra.nextFarm || data.hasPlan()) return false;
 		List<Villager> residents = Villages.residents(c.level(), ref, Config.VILLAGE_RADIUS, v -> true);
-		if (residents.isEmpty() || residents.stream().anyMatch(v -> !de.villagerplus.village.Housing.hasHome(v))) return false;
+		if (residents.isEmpty() || residents.stream().filter(de.villagerplus.village.Housing::hasHome).count() < 2) return false;
 		if (!shouldExpand(data.farms, residents.size())) return false;
 		FenceKit kit = fenceKit(stores);
 		SeedCrop crop = SEED_CROPS.stream().filter(sc -> count(stores, sc.seed()) >= CLUSTER_SEEDS)
